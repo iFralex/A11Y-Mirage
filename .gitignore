@@ -36,3 +36,6 @@ Thumbs.db
 # Temporary folders
 tmp/
 temp/
+
+# ralphex progress logs
+.ralphex/progress/
