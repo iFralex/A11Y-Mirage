@@ -30,15 +30,15 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 3: Context Initialization UI (Setup Phase)
-- [ ] Run: `npx shadcn@latest add textarea button card`
-- [ ] Create folder: `mkdir -p app/components`
-- [ ] Create file `app/components/ContextSetup.jsx`
-- [ ] Import `useSharedStateStore`, shadcn `Textarea`, `Button`, and `Card` components
-- [ ] Inside `ContextSetup.jsx`, create a state `localContext` using `useState("")`
-- [ ] Add an `<input type="file" accept=".txt">` that reads the file via `FileReader` and sets its content to `localContext`
-- [ ] Add a `Textarea` linked to `localContext` to allow manual pasting/editing
-- [ ] Add a "Salva Contesto" `Button` that calls `setSystemContext(localContext)` on click
-- [ ] Mark completed
+- [x] Run: `npx shadcn@latest add textarea button card`
+- [x] Create folder: `mkdir -p app/components`
+- [x] Create file `app/components/ContextSetup.jsx`
+- [x] Import `useSharedStateStore`, shadcn `Textarea`, `Button`, and `Card` components
+- [x] Inside `ContextSetup.jsx`, create a state `localContext` using `useState("")`
+- [x] Add an `<input type="file" accept=".txt">` that reads the file via `FileReader` and sets its content to `localContext`
+- [x] Add a `Textarea` linked to `localContext` to allow manual pasting/editing
+- [x] Add a "Salva Contesto" `Button` that calls `setSystemContext(localContext)` on click
+- [x] Mark completed
 
 ### Task 4: Backend Server Actions & Gemini Integration
 -[ ] Run: `npm install @google/generative-ai`
