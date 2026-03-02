@@ -53,14 +53,14 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 5: Accessible Generic UI Components (shadcn/ui)
-- [ ] Run: `npx shadcn@latest add input radio-group checkbox label alert`
-- [ ] Create file `app/components/DynamicTaskRenderer.jsx`
-- [ ] Accept `pendingAction` object as a prop
-- [ ] Implement a `switch(pendingAction.type)` statement
-- [ ] Case `'select_option'`: Render `<fieldset>` containing a `<legend>` with `pendingAction.question`. Inside, map over `pendingAction.options` returning shadcn `RadioGroup` and `Label`. Add `htmlFor` to labels matching the radio IDs.
-- [ ] Case `'boolean_confirm'`: Render a single shadcn `Checkbox` (id="confirm-action") linked to a `Label` showing `pendingAction.question` via `htmlFor="confirm-action"`.
-- [ ] Case `'text_input'`: Render a shadcn `Label` and `Input` with matching `htmlFor` and `id` showing `pendingAction.question`.
-- [ ] Mark completed
+- [x] Run: `npx shadcn@latest add input radio-group checkbox label alert`
+- [x] Create file `app/components/DynamicTaskRenderer.jsx`
+- [x] Accept `pendingAction` object as a prop
+- [x] Implement a `switch(pendingAction.type)` statement
+- [x] Case `'select_option'`: Render `<fieldset>` containing a `<legend>` with `pendingAction.question`. Inside, map over `pendingAction.options` returning shadcn `RadioGroup` and `Label`. Add `htmlFor` to labels matching the radio IDs.
+- [x] Case `'boolean_confirm'`: Render a single shadcn `Checkbox` (id="confirm-action") linked to a `Label` showing `pendingAction.question` via `htmlFor="confirm-action"`.
+- [x] Case `'text_input'`: Render a shadcn `Label` and `Input` with matching `htmlFor` and `id` showing `pendingAction.question`.
+- [x] Mark completed
 
 ### Task 6: Main Container & A11y Focus Management
 - [ ] Create file `app/components/DynamicTaskContainer.jsx`
