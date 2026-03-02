@@ -8,7 +8,8 @@ export async function getFolders() {
     return entries
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name);
-  } catch {
+  } catch (err) {
+    console.error('getFolders: failed to read directory:', err);
     return [];
   }
 }
