@@ -19,10 +19,10 @@ Create a Next.js App (App Router, JavaScript) that displays on the home page a l
 ---
 
 ### Task 2: Server Action to Read Folders
-- [ ] Create folder app/actions  
-- [ ] Create file app/actions/getFolders.js  
-- [ ] Implement Server Action to read folders using Node fs module  
-- [ ] Mark completed  
+- [x] Create folder app/actions
+- [x] Create file app/actions/getFolders.js
+- [x] Implement Server Action to read folders using Node fs module
+- [x] Mark completed
 
 ---
 
