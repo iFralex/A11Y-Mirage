@@ -39,6 +39,7 @@
     "vitest": "^4.0.18"
   },
   "optionalDependencies": {
+    "@rollup/rollup-linux-arm64-musl": "^4.59.0",
     "lightningcss-linux-arm64-musl": "^1.31.1",
     "lightningcss-linux-x64-gnu": "^1.31.1",
     "lightningcss-linux-x64-musl": "^1.31.1"

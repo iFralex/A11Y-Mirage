@@ -63,20 +63,20 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 6: Main Container & A11y Focus Management
-- [ ] Create file `app/components/DynamicTaskContainer.jsx`
-- [ ] Import `useSharedStateStore`, `DynamicTaskRenderer`, and shadcn `Alert`
-- [ ] Get `taskData`, `isLoading`, and `error` from Zustand store
-- [ ] Add `const titleRef = useRef(null)`
--[ ] Add `useEffect` that checks: `if (taskData && !isLoading && !error)` then `titleRef.current?.focus()`
-- [ ] Render a main `<div role="region" aria-labelledby="task-title">`
-- [ ] Render `<div aria-live="assertive" className="sr-only">`: if `isLoading` is true render text "Elaborazione in corso...".
-- [ ] Render visual UI: if `isLoading` show visual spinner, if `error` show shadcn `Alert` with error message.
-- [ ] If `taskData` exists, render `<h2 id="task-title" tabIndex="-1" ref={titleRef}>Task: {taskData.taskType}</h2>`
-- [ ] Render `<p>{taskData.stateSummary}</p>`
-- [ ] Render `<DynamicTaskRenderer pendingAction={taskData.pendingAction} />`
-- [ ] Add a "Conferma" `Button` below the renderer to close the loop (console.log the selected data for the prototype).
-- [ ] Style the container with Tailwind for a clean, modern UI (spacing, card layout, responsive design, visual hierarchy).
-- [ ] Mark completed
+- [x] Create file `app/components/DynamicTaskContainer.jsx`
+- [x] Import `useSharedStateStore`, `DynamicTaskRenderer`, and shadcn `Alert`
+- [x] Get `taskData`, `isLoading`, and `error` from Zustand store
+- [x] Add `const titleRef = useRef(null)`
+- [x] Add `useEffect` that checks: `if (taskData && !isLoading && !error)` then `titleRef.current?.focus()`
+- [x] Render a main `<div role="region" aria-labelledby="task-title">`
+- [x] Render `<div aria-live="assertive" className="sr-only">`: if `isLoading` is true render text "Elaborazione in corso...".
+- [x] Render visual UI: if `isLoading` show visual spinner, if `error` show shadcn `Alert` with error message.
+- [x] If `taskData` exists, render `<h2 id="task-title" tabIndex="-1" ref={titleRef}>Task: {taskData.taskType}</h2>`
+- [x] Render `<p>{taskData.stateSummary}</p>`
+- [x] Render `<DynamicTaskRenderer pendingAction={taskData.pendingAction} />`
+- [x] Add a "Conferma" `Button` below the renderer to close the loop (console.log the selected data for the prototype).
+- [x] Style the container with Tailwind for a clean, modern UI (spacing, card layout, responsive design, visual hierarchy).
+- [x] Mark completed
 
 ### Task 7: Main Page Integration & User Flow Logic
 - [ ] Edit `app/page.js` (remove all default Next.js boilerplate)
