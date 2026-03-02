@@ -1,11 +1,15 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
+import { promises as fs } from 'fs';
 
 export async function getFolders(dirPath = '/') {
-  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
+  try {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+  } catch (err) {
+    console.error('getFolders error:', err);
+    return [];
+  }
 }
