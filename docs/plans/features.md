@@ -75,6 +75,7 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [ ] Render `<p>{taskData.stateSummary}</p>`
 - [ ] Render `<DynamicTaskRenderer pendingAction={taskData.pendingAction} />`
 - [ ] Add a "Conferma" `Button` below the renderer to close the loop (console.log the selected data for the prototype).
+- [ ] Style the container with Tailwind for a clean, modern UI (spacing, card layout, responsive design, visual hierarchy).
 - [ ] Mark completed
 
 ### Task 7: Main Page Integration & User Flow Logic
