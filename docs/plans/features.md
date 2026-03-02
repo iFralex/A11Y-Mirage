@@ -79,16 +79,16 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 7: Main Page Integration & User Flow Logic
-- [ ] Edit `app/page.js` (remove all default Next.js boilerplate)
--[ ] Import `ContextSetup`, `DynamicTaskContainer`, `useSharedStateStore`, and `processWithGemini`
-- [ ] Read `systemContext` from the store.
-- [ ] Conditional rendering: `if (!systemContext)` return `<ContextSetup />`.
-- [ ] Else (Phase 2), render a form with a text `<textarea id="user-prompt" required>` and a submit "Invia Richiesta" button.
-- [ ] Attach `onSubmit` to the form: prevent default, call `setLoading(true)`, clear previous errors, call `processWithGemini(textareaValue, systemContext)`.
-- [ ] On promise resolution: call `updateTaskData(result)` and `setLoading(false)`.
-- [ ] On promise rejection: call `setError(err.message)` and `setLoading(false)`.
-- [ ] Render `<DynamicTaskContainer />` below the prompt form.
-- [ ] Mark completed
+- [x] Edit `app/page.js` (remove all default Next.js boilerplate)
+- [x] Import `ContextSetup`, `DynamicTaskContainer`, `useSharedStateStore`, and `processWithGemini`
+- [x] Read `systemContext` from the store.
+- [x] Conditional rendering: `if (!systemContext)` return `<ContextSetup />`.
+- [x] Else (Phase 2), render a form with a text `<textarea id="user-prompt" required>` and a submit "Invia Richiesta" button.
+- [x] Attach `onSubmit` to the form: prevent default, call `setLoading(true)`, clear previous errors, call `processWithGemini(textareaValue, systemContext)`.
+- [x] On promise resolution: call `updateTaskData(result)` and `setLoading(false)`.
+- [x] On promise rejection: call `setError(err.message)` and `setLoading(false)`.
+- [x] Render `<DynamicTaskContainer />` below the prompt form.
+- [x] Mark completed
 
 ### Task 8: End-to-End & Accessibility Validation
 - [ ] Run: `npx playwright install --with-deps`
