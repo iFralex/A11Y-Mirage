@@ -41,16 +41,16 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 4: Backend Server Actions & Gemini Integration
--[ ] Run: `npm install @google/generative-ai`
-- [ ] Create folders: `mkdir -p app/actions logs`
-- [ ] Create file `app/actions/processUserInput.js` and add `"use server";` at the exact top
-- [ ] Initialize `GoogleGenerativeAI` with `process.env.GEMINI_API_KEY` and set model to `"gemini-3-flash"`
--[ ] Configure `responseSchema` to strictly enforce: `taskId` (string), `taskType` (enum: `meeting_coordination`, `document_approval`, `data_collection`), `stateSummary` (string), `pendingAction` (object with `type` enum `select_option`, `boolean_confirm`, `text_input`; `question` string; `options` array of strings). Set `responseMimeType: "application/json"`.
-- [ ] Export async function `processWithGemini(userPrompt, systemContext)`
-- [ ] Implement a `for` loop (max 2 iterations: initial + 1 retry) wrapping the Gemini call `model.generateContent(systemContext + "\n\nUser Prompt: " + userPrompt)`
-- [ ] Inside loop on success: return `JSON.parse(response.text())`
-- [ ] On failure of final retry: use Node `fs.appendFileSync('logs/gemini-errors.log', JSON.stringify({error, userPrompt, systemContext}))` and throw `"Errore di connessione al modello."`
-- [ ] Mark completed
+- [x] Run: `npm install @google/generative-ai`
+- [x] Create folders: `mkdir -p app/actions logs`
+- [x] Create file `app/actions/processUserInput.js` and add `"use server";` at the exact top
+- [x] Initialize `GoogleGenerativeAI` with `process.env.GEMINI_API_KEY` and set model to `"gemini-3-flash"`
+- [x] Configure `responseSchema` to strictly enforce: `taskId` (string), `taskType` (enum: `meeting_coordination`, `document_approval`, `data_collection`), `stateSummary` (string), `pendingAction` (object with `type` enum `select_option`, `boolean_confirm`, `text_input`; `question` string; `options` array of strings). Set `responseMimeType: "application/json"`.
+- [x] Export async function `processWithGemini(userPrompt, systemContext)`
+- [x] Implement a `for` loop (max 2 iterations: initial + 1 retry) wrapping the Gemini call `model.generateContent(systemContext + "\n\nUser Prompt: " + userPrompt)`
+- [x] Inside loop on success: return `JSON.parse(response.text())`
+- [x] On failure of final retry: use Node `fs.appendFileSync('logs/gemini-errors.log', JSON.stringify({error, userPrompt, systemContext}))` and throw `"Errore di connessione al modello."`
+- [x] Mark completed
 
 ### Task 5: Accessible Generic UI Components (shadcn/ui)
 - [ ] Run: `npx shadcn@latest add input radio-group checkbox label alert`
