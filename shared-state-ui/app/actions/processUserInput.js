@@ -2,6 +2,7 @@
 
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import fs from "fs";
+import path from "path";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -34,7 +35,7 @@ const responseSchema = {
 };
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash",
+  model: "gemini-2.0-flash",
   generationConfig: {
     responseMimeType: "application/json",
     responseSchema,
@@ -54,8 +55,8 @@ export async function processWithGemini(userPrompt, systemContext) {
     }
   }
   fs.appendFileSync(
-    "logs/gemini-errors.log",
-    JSON.stringify({ error: lastError?.message ?? String(lastError), userPrompt, systemContext }) + "\n"
+    path.join(process.cwd(), "logs", "gemini-errors.log"),
+    JSON.stringify({ error: lastError?.message ?? String(lastError) }) + "\n"
   );
   throw new Error("Errore di connessione al modello.");
 }

@@ -17,6 +17,10 @@ export const useSharedStateStore = create(
     }),
     {
       name: 'shared-state-storage',
+      partialize: (state) => ({
+        systemContext: state.systemContext,
+        taskData: state.taskData,
+      }),
     }
   )
 )

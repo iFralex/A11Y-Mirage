@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import DynamicTaskContainer from '../app/components/DynamicTaskContainer';
 import { useSharedStateStore } from '../app/store/useSharedState';
 
 describe('DynamicTaskContainer', () => {
   beforeEach(() => {
     useSharedStateStore.setState({
+      systemContext: '',
       taskData: null,
       isLoading: false,
       error: null,
@@ -79,11 +80,27 @@ describe('DynamicTaskContainer', () => {
     expect(screen.getByRole('button', { name: 'Conferma' })).toBeInTheDocument();
   });
 
-  it('renders with role="region" and aria-labelledby="task-title"', () => {
+  it('renders with role="region" and uses aria-label when taskData is absent', () => {
     render(<DynamicTaskContainer />);
     const region = screen.getByRole('region');
     expect(region).toBeInTheDocument();
+    expect(region).toHaveAttribute('aria-label', 'Sezione task AI');
+    expect(region).not.toHaveAttribute('aria-labelledby');
+  });
+
+  it('renders with role="region" and aria-labelledby="task-title" when taskData is present', () => {
+    useSharedStateStore.setState({
+      taskData: {
+        taskId: '3',
+        taskType: 'meeting_coordination',
+        stateSummary: 'Test',
+        pendingAction: { type: 'text_input', question: 'Q?', options: [] },
+      },
+    });
+    render(<DynamicTaskContainer />);
+    const region = screen.getByRole('region');
     expect(region).toHaveAttribute('aria-labelledby', 'task-title');
+    expect(region).not.toHaveAttribute('aria-label');
   });
 
   it('aria-live region is empty when not loading', () => {
@@ -91,5 +108,22 @@ describe('DynamicTaskContainer', () => {
     render(<DynamicTaskContainer />);
     const liveRegion = document.querySelector('[aria-live="assertive"]');
     expect(liveRegion.textContent).toBe('');
+  });
+
+  it('focuses the task title when taskData is set and loading is complete', async () => {
+    useSharedStateStore.setState({
+      taskData: {
+        taskId: '4',
+        taskType: 'data_collection',
+        stateSummary: 'Test focus.',
+        pendingAction: { type: 'text_input', question: 'Q?', options: [] },
+      },
+      isLoading: false,
+      error: null,
+    });
+    render(<DynamicTaskContainer />);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
+    });
   });
 });

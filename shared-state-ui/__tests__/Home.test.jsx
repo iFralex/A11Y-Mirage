@@ -13,6 +13,13 @@ vi.mock('../app/components/DynamicTaskContainer', () => ({
 
 import { processWithGemini } from '../app/actions/processUserInput';
 
+const mockTaskData = {
+  taskId: '1',
+  taskType: 'meeting_coordination',
+  stateSummary: 'Summary',
+  pendingAction: { type: 'text_input', question: 'Q?', options: [] },
+};
+
 describe('Home page', () => {
   beforeEach(() => {
     useSharedStateStore.setState({
@@ -49,12 +56,7 @@ describe('Home page', () => {
 
   it('calls processWithGemini on form submit with prompt and context', async () => {
     useSharedStateStore.setState({ systemContext: 'test context' });
-    processWithGemini.mockResolvedValueOnce({
-      taskId: '1',
-      taskType: 'meeting_coordination',
-      stateSummary: 'Summary',
-      pendingAction: { type: 'text_input', question: 'Q?', options: [] },
-    });
+    processWithGemini.mockResolvedValueOnce(mockTaskData);
 
     render(<Home />);
     const textarea = screen.getByLabelText('La tua richiesta');
@@ -68,13 +70,7 @@ describe('Home page', () => {
 
   it('calls updateTaskData and setLoading(false) on success', async () => {
     useSharedStateStore.setState({ systemContext: 'test context' });
-    const mockResult = {
-      taskId: '1',
-      taskType: 'document_approval',
-      stateSummary: 'Doc summary',
-      pendingAction: { type: 'boolean_confirm', question: 'Approve?', options: [] },
-    };
-    processWithGemini.mockResolvedValueOnce(mockResult);
+    processWithGemini.mockResolvedValueOnce(mockTaskData);
 
     render(<Home />);
     const textarea = screen.getByLabelText('La tua richiesta');
@@ -82,7 +78,7 @@ describe('Home page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Invia Richiesta' }));
 
     await waitFor(() => {
-      expect(useSharedStateStore.getState().taskData).toEqual(mockResult);
+      expect(useSharedStateStore.getState().taskData).toEqual(mockTaskData);
       expect(useSharedStateStore.getState().isLoading).toBe(false);
     });
   });
@@ -99,6 +95,43 @@ describe('Home page', () => {
     await waitFor(() => {
       expect(useSharedStateStore.getState().error).toBe('Errore di connessione al modello.');
       expect(useSharedStateStore.getState().isLoading).toBe(false);
+    });
+  });
+
+  it('sets isLoading to true before processWithGemini resolves', async () => {
+    useSharedStateStore.setState({ systemContext: 'test context' });
+    let resolvePromise;
+    processWithGemini.mockReturnValueOnce(
+      new Promise((r) => { resolvePromise = r; })
+    );
+
+    render(<Home />);
+    const textarea = screen.getByLabelText('La tua richiesta');
+    fireEvent.change(textarea, { target: { value: 'my prompt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Invia Richiesta' }));
+
+    await waitFor(() => {
+      expect(useSharedStateStore.getState().isLoading).toBe(true);
+    });
+
+    resolvePromise(mockTaskData);
+
+    await waitFor(() => {
+      expect(useSharedStateStore.getState().isLoading).toBe(false);
+    });
+  });
+
+  it('clears a previous error before submitting a new request', async () => {
+    useSharedStateStore.setState({ systemContext: 'test context', error: 'previous error' });
+    processWithGemini.mockResolvedValueOnce(mockTaskData);
+
+    render(<Home />);
+    const textarea = screen.getByLabelText('La tua richiesta');
+    fireEvent.change(textarea, { target: { value: 'new prompt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Invia Richiesta' }));
+
+    await waitFor(() => {
+      expect(useSharedStateStore.getState().error).toBeNull();
     });
   });
 });

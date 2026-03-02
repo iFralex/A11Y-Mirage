@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ContextSetup from '../app/components/ContextSetup'
 import { useSharedStateStore } from '../app/store/useSharedState'
@@ -11,6 +11,10 @@ describe('ContextSetup', () => {
       isLoading: false,
       error: null,
     })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('renders the context setup card', () => {
@@ -72,7 +76,5 @@ describe('ContextSetup', () => {
 
     const textarea = screen.getByLabelText('Oppure incolla il testo del contesto')
     expect(textarea.value).toBe(fileContent)
-
-    vi.unstubAllGlobals()
   })
 })

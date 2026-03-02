@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 // Mock fs module
 vi.mock("fs", () => ({
@@ -40,9 +40,17 @@ const validTaskData = {
 };
 
 describe("processWithGemini", () => {
+  let processWithGemini;
+  let fs;
+
+  beforeAll(async () => {
+    const actionModule = await import("@/app/actions/processUserInput.js");
+    processWithGemini = actionModule.processWithGemini;
+    fs = await import("fs");
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it("returns parsed JSON on first successful call", async () => {
@@ -50,9 +58,6 @@ describe("processWithGemini", () => {
       response: { text: () => JSON.stringify(validTaskData) },
     });
 
-    const { processWithGemini } = await import(
-      "@/app/actions/processUserInput.js"
-    );
     const result = await processWithGemini("schedule a meeting", "context");
 
     expect(result).toEqual(validTaskData);
@@ -69,9 +74,6 @@ describe("processWithGemini", () => {
         response: { text: () => JSON.stringify(validTaskData) },
       });
 
-    const { processWithGemini } = await import(
-      "@/app/actions/processUserInput.js"
-    );
     const result = await processWithGemini("prompt", "ctx");
 
     expect(result).toEqual(validTaskData);
@@ -79,20 +81,15 @@ describe("processWithGemini", () => {
   });
 
   it("throws and logs error after both retries fail", async () => {
-    const fs = await import("fs");
     mockGenerateContent
       .mockRejectedValueOnce(new Error("fail 1"))
       .mockRejectedValueOnce(new Error("fail 2"));
-
-    const { processWithGemini } = await import(
-      "@/app/actions/processUserInput.js"
-    );
 
     await expect(processWithGemini("prompt", "ctx")).rejects.toThrow(
       "Errore di connessione al modello."
     );
     expect(fs.default.appendFileSync).toHaveBeenCalledWith(
-      "logs/gemini-errors.log",
+      expect.stringContaining("logs/gemini-errors.log"),
       expect.stringContaining("fail 2")
     );
   });

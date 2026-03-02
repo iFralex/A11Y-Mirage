@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSharedStateStore } from '@/app/store/useSharedState';
 import DynamicTaskRenderer from '@/app/components/DynamicTaskRenderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -12,6 +12,7 @@ export default function DynamicTaskContainer() {
   const error = useSharedStateStore((state) => state.error);
 
   const titleRef = useRef(null);
+  const [userResponse, setUserResponse] = useState(null);
 
   useEffect(() => {
     if (taskData && !isLoading && !error) {
@@ -20,11 +21,16 @@ export default function DynamicTaskContainer() {
   }, [taskData, isLoading, error]);
 
   const handleConferma = () => {
-    console.log('Conferma clicked. Current taskData:', taskData);
+    console.log('Conferma clicked. Task:', taskData?.taskType, 'User response:', userResponse);
   };
 
   return (
-    <div role="region" aria-labelledby="task-title" className="max-w-2xl mx-auto mt-6">
+    <div
+      role="region"
+      aria-labelledby={taskData ? 'task-title' : undefined}
+      aria-label={taskData ? undefined : 'Sezione task AI'}
+      className="max-w-2xl mx-auto mt-6"
+    >
       <div aria-live="assertive" className="sr-only">
         {isLoading ? 'Elaborazione in corso...' : ''}
       </div>
@@ -53,7 +59,11 @@ export default function DynamicTaskContainer() {
             Task: {taskData.taskType}
           </h2>
           <p className="text-muted-foreground text-sm">{taskData.stateSummary}</p>
-          <DynamicTaskRenderer pendingAction={taskData.pendingAction} />
+          <DynamicTaskRenderer
+            key={taskData.taskId}
+            pendingAction={taskData.pendingAction}
+            onResponseChange={setUserResponse}
+          />
           <Button onClick={handleConferma} className="self-start mt-2">
             Conferma
           </Button>

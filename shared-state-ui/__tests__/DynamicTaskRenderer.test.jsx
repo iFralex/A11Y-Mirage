@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import DynamicTaskRenderer from "@/app/components/DynamicTaskRenderer";
 
 describe("DynamicTaskRenderer", () => {
@@ -50,6 +50,19 @@ describe("DynamicTaskRenderer", () => {
       expect(screen.getByText("Q?")).toBeInTheDocument();
       expect(screen.queryAllByRole("radio")).toHaveLength(0);
     });
+
+    it("calls onResponseChange with selected value when a radio is clicked", () => {
+      const onResponseChange = vi.fn();
+      render(
+        <DynamicTaskRenderer
+          pendingAction={pendingAction}
+          onResponseChange={onResponseChange}
+        />
+      );
+      const radio = screen.getByLabelText("Monday 10am");
+      fireEvent.click(radio);
+      expect(onResponseChange).toHaveBeenCalledWith("Monday 10am");
+    });
   });
 
   describe("boolean_confirm", () => {
@@ -69,6 +82,19 @@ describe("DynamicTaskRenderer", () => {
         screen.getByLabelText("Do you confirm this action?")
       ).toBeInTheDocument();
     });
+
+    it("calls onResponseChange when the checkbox is toggled", () => {
+      const onResponseChange = vi.fn();
+      render(
+        <DynamicTaskRenderer
+          pendingAction={pendingAction}
+          onResponseChange={onResponseChange}
+        />
+      );
+      const checkbox = screen.getByRole("checkbox");
+      fireEvent.click(checkbox);
+      expect(onResponseChange).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("text_input", () => {
@@ -85,6 +111,20 @@ describe("DynamicTaskRenderer", () => {
     it("renders a label linked to the input via htmlFor", () => {
       render(<DynamicTaskRenderer pendingAction={pendingAction} />);
       expect(screen.getByLabelText("Enter your name:")).toBeInTheDocument();
+    });
+
+    it("updates input value and calls onResponseChange when user types", () => {
+      const onResponseChange = vi.fn();
+      render(
+        <DynamicTaskRenderer
+          pendingAction={pendingAction}
+          onResponseChange={onResponseChange}
+        />
+      );
+      const input = screen.getByRole("textbox");
+      fireEvent.change(input, { target: { value: "John" } });
+      expect(input).toHaveValue("John");
+      expect(onResponseChange).toHaveBeenCalledWith("John");
     });
   });
 });

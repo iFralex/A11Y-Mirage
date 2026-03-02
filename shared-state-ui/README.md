@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Shared State UI
 
-## Getting Started
+A Next.js (App Router) prototype implementing an accessible "Shared State" AI interaction paradigm powered by Google Gemini.
 
-First, run the development server:
+## What this app does
+
+**Phase 1 – Context Initialization:** On first load the user uploads a `.txt` file or pastes text that serves as the AI system context. This is persisted across browser sessions via Zustand + localStorage.
+
+**Phase 2 – AI Prompt & Task Rendering:** After saving context the user submits a free-text prompt. A Next.js Server Action calls Gemini Flash, which returns a structured JSON task. The UI renders an accessible form matching the task type (`select_option`, `boolean_confirm`, or `text_input`). The user fills in the form and clicks Conferma to confirm their response.
+
+## Prerequisites
+
+- Node.js 18+
+- A Google Gemini API key
+
+## Setup
+
+```bash
+npm install
+```
+
+Create a `.env` file in this directory with your Gemini API key:
+
+```
+GEMINI_API_KEY=your_api_key_here
+```
+
+Then start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Running tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Unit and component tests (Vitest)
+npm run test
+npm run test:watch
 
-## Learn More
+# End-to-end and accessibility tests (Playwright)
+# Requires a glibc-compatible environment with Chromium available.
+npx playwright test
 
-To learn more about Next.js, take a look at the following resources:
+# Force-enable E2E tests when browser binary is available:
+PLAYWRIGHT_BROWSER_AVAILABLE=true npx playwright test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Note: E2E tests skip automatically (exit 0) in Alpine/musl environments where the glibc-linked Chromium binary cannot execute.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Linting
 
-## Deploy on Vercel
+```bash
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Error logging
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Gemini API errors after all retries are appended to `logs/gemini-errors.log`.
