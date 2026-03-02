@@ -35,8 +35,8 @@ Create a Next.js App (App Router, JavaScript) that displays on the home page a l
 ---
 
 ### Task 4: Home Page Integration
-- [ ] Edit app/page.js to import FolderList and getFolders  
-- [ ] Fetch the folders on the server side and pass them to FolderList  
-- [ ] Render a heading "Filesystem Folders" above the list  
-- [ ] Mark completed  
+- [x] Edit app/page.js to import FolderList and getFolders
+- [x] Fetch the folders on the server side and pass them to FolderList
+- [x] Render a heading "Filesystem Folders" above the list
+- [x] Mark completed
 
