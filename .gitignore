@@ -40,5 +40,6 @@ temp/
 # ralphex progress logs
 .ralphex/progress/
 
-# ralphex progress logs
-.ralphex/progress/
+# Playwright output
+**/playwright-report/
+**/test-results/

@@ -91,12 +91,12 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [x] Mark completed
 
 ### Task 8: End-to-End & Accessibility Validation
-- [ ] Run: `npx playwright install --with-deps`
-- [ ] Create folder: `mkdir -p e2e`
-- [ ] Create file `e2e/user-flow.spec.js`
-- [ ] In `user-flow.spec.js`, write test 1: Navigate to `/`, verify ContextSetup is visible, paste text "Contesto di test", click save, verify the prompt form appears.
-- [ ] Write test 2: Fill `#user-prompt`, click submit. Mock the Server Action or network to return a valid `'meeting_coordination'` JSON.
-- [ ] Assert that `aria-live` element contains "Elaborazione in corso...".
-- [ ] Assert that focus is strictly moved to `#task-title` using `await expect(page.locator('#task-title')).toBeFocused()`.
-- [ ] Run `@axe-core/playwright` on the page while `DynamicTaskContainer` is visible and assert 0 violations.
-- [ ] Mark completed
+- [x] Run: `npx playwright install --with-deps`
+- [x] Create folder: `mkdir -p e2e`
+- [x] Create file `e2e/user-flow.spec.js`
+- [x] In `user-flow.spec.js`, write test 1: Navigate to `/`, verify ContextSetup is visible, paste text "Contesto di test", click save, verify the prompt form appears.
+- [x] Write test 2: Fill `#user-prompt`, click submit. Mock the Server Action or network to return a valid `'meeting_coordination'` JSON.
+- [x] Assert that `aria-live` element contains "Elaborazione in corso...".
+- [x] Assert that focus is strictly moved to `#task-title` using `await expect(page.locator('#task-title')).toBeFocused()`.
+- [x] Run `@axe-core/playwright` on the page while `DynamicTaskContainer` is visible and assert 0 violations.
+- [x] Mark completed
