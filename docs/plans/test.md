@@ -11,10 +11,10 @@ Create a Next.js App (App Router, JavaScript) that displays on the home page a l
 ---
 
 ### Task 1: Project Initialization
-- [ ] Create the new Next.js app with npx create-next-app@latest fs-explorer --javascript --tailwind --eslint --app --no-src-dir --import-alias "@/*"  
-- [ ] cd fs-explorer  
-- [ ] Install additional dependencies if needed with npm install  
-- [ ] Mark completed  
+- [x] Create the new Next.js app with npx create-next-app@latest fs-explorer --javascript --tailwind --eslint --app --no-src-dir --import-alias "@/*"
+- [x] cd fs-explorer
+- [x] Install additional dependencies if needed with npm install
+- [x] Mark completed
 
 ---
 
