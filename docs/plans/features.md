@@ -9,15 +9,15 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - `npx playwright test`
 
 ### Task 1: Project Initialization & Tooling Setup
-- [ ] Run: `npx create-next-app@latest shared-state-ui --javascript --tailwind --eslint --app --no-src-dir --import-alias "@/*"`
-- [ ] Run: `cd shared-state-ui` (All following commands assume this root directory)
-- [ ] Run: `npx shadcn@latest init -d` to initialize shadcn/ui with default settings
-- [ ] Run: `npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom eslint-plugin-jsx-a11y @axe-core/playwright @playwright/test`
-- [ ] Update `.eslintrc.json` to include `"extends":["next/core-web-vitals", "plugin:jsx-a11y/recommended"]`
-- [ ] Create `vitest.config.js` in the root with `environment: 'jsdom'` and React plugin enabled
-- [ ] Update `package.json` scripts: add `"test": "vitest run"` and `"test:watch": "vitest"`
-- [ ] Copy the .env file from the project root into the shared-state folder
-- [ ] Mark completed
+- [x] Run: `npx create-next-app@latest shared-state-ui --javascript --tailwind --eslint --app --no-src-dir --import-alias "@/*"`
+- [x] Run: `cd shared-state-ui` (All following commands assume this root directory)
+- [x] Run: `npx shadcn@latest init -d` to initialize shadcn/ui with default settings
+- [x] Run: `npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom eslint-plugin-jsx-a11y @axe-core/playwright @playwright/test`
+- [x] Update `.eslintrc.json` to include `"extends":["next/core-web-vitals", "plugin:jsx-a11y/recommended"]`
+- [x] Create `vitest.config.js` in the root with `environment: 'jsdom'` and React plugin enabled
+- [x] Update `package.json` scripts: add `"test": "vitest run"` and `"test:watch": "vitest"`
+- [x] Copy the .env file from the project root into the shared-state folder
+- [x] Mark completed
 
 ### Task 2: State Management (Zustand) & Local Caching
 - [ ] Run: `npm install zustand`
