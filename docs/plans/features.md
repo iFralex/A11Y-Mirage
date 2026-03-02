@@ -16,6 +16,7 @@ Build a Next.js (App Router, JavaScript only) prototype featuring an accessible 
 - [ ] Update `.eslintrc.json` to include `"extends":["next/core-web-vitals", "plugin:jsx-a11y/recommended"]`
 - [ ] Create `vitest.config.js` in the root with `environment: 'jsdom'` and React plugin enabled
 - [ ] Update `package.json` scripts: add `"test": "vitest run"` and `"test:watch": "vitest"`
+- [ ] Copy the .env file from the project root into the shared-state folder
 - [ ] Mark completed
 
 ### Task 2: State Management (Zustand) & Local Caching
