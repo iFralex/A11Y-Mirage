@@ -27,10 +27,10 @@ Create a Next.js App (App Router, JavaScript) that displays on the home page a l
 ---
 
 ### Task 3: FolderList Component
-- [ ] Create folder app/components  
-- [ ] Create file app/components/FolderList.jsx  
-- [ ] Implement component to render the list of folders as a <ul>  
-- [ ] Mark completed  
+- [x] Create folder app/components
+- [x] Create file app/components/FolderList.jsx
+- [x] Implement component to render the list of folders as a <ul>
+- [x] Mark completed
 
 ---
 
