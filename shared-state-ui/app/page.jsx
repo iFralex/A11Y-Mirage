@@ -17,8 +17,8 @@ export default function Home() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     clearError();
+    setLoading(true);
     try {
       const result = await processWithGemini(userPrompt, systemContext);
       updateTaskData(result);

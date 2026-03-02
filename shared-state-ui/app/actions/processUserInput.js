@@ -56,7 +56,7 @@ export async function processWithGemini(userPrompt, systemContext) {
   }
   fs.appendFileSync(
     path.join(process.cwd(), "logs", "gemini-errors.log"),
-    JSON.stringify({ error: lastError?.message ?? String(lastError) }) + "\n"
+    JSON.stringify({ error: lastError?.message ?? String(lastError), userPrompt, systemContext }) + "\n"
   );
   throw new Error("Errore di connessione al modello.");
 }

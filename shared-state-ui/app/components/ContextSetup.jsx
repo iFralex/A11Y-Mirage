@@ -13,9 +13,24 @@ export default function ContextSetup() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.type !== 'text/plain') {
+      alert('Seleziona un file .txt valido.');
+      e.target.value = '';
+      return;
+    }
+    const MAX_SIZE = 512 * 1024; // 512 KB
+    if (file.size > MAX_SIZE) {
+      alert('Il file è troppo grande. Dimensione massima: 512 KB.');
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (event) => {
       setLocalContext(event.target.result);
+    };
+    reader.onerror = () => {
+      alert('Errore durante la lettura del file.');
+      e.target.value = '';
     };
     reader.readAsText(file);
   };
