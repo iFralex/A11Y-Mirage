@@ -24,19 +24,29 @@ vi.mock("@google/generative-ai", () => {
       OBJECT: "OBJECT",
       STRING: "STRING",
       ARRAY: "ARRAY",
+      NUMBER: "NUMBER",
+      BOOLEAN: "BOOLEAN",
     },
   };
 });
 
-const validTaskData = {
+const validStepData = {
   taskId: "task-123",
-  taskType: "meeting_coordination",
-  stateSummary: "Meeting needs to be scheduled",
-  pendingAction: {
-    type: "select_option",
-    question: "Which time slot works?",
-    options: ["Monday 10am", "Tuesday 2pm"],
-  },
+  taskType: "generic",
+  taskName: "Plan a trip to Rome",
+  stepId: "step_1",
+  stepNumber: 1,
+  estimatedRemainingSteps: 3,
+  stateSummary: "Starting travel planning workflow",
+  inputs: [
+    {
+      id: "destination",
+      type: "text_input",
+      label: "Where do you want to go?",
+      placeholder: "Enter destination",
+      required: true,
+    },
+  ],
 };
 
 describe("processWithGemini", () => {
@@ -53,30 +63,53 @@ describe("processWithGemini", () => {
     vi.clearAllMocks();
   });
 
-  it("returns parsed JSON on first successful call", async () => {
+  it("returns parsed JSON step on successful call", async () => {
     mockGenerateContent.mockResolvedValueOnce({
-      response: { text: () => JSON.stringify(validTaskData) },
+      response: { text: () => JSON.stringify(validStepData) },
     });
 
-    const result = await processWithGemini("schedule a meeting", "context");
+    const result = await processWithGemini("plan a trip", "You are a travel assistant");
 
-    expect(result).toEqual(validTaskData);
+    expect(result).toEqual(validStepData);
     expect(mockGenerateContent).toHaveBeenCalledTimes(1);
-    expect(mockGenerateContent).toHaveBeenCalledWith(
-      "context\n\nUser Prompt: schedule a meeting"
-    );
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("You are a travel assistant");
+    expect(callArg).toContain("plan a trip");
+  });
+
+  it("includes workflow history in prompt when workflowState has steps", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const workflowState = {
+      steps: [
+        {
+          stepNumber: 1,
+          questionSummary: "Where do you want to go?",
+          response: { destination: "Rome" },
+        },
+      ],
+    };
+
+    await processWithGemini("proceed", "context", workflowState);
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Workflow History");
+    expect(callArg).toContain("Where do you want to go?");
+    expect(callArg).toContain("Rome");
   });
 
   it("retries once on failure and succeeds on second attempt", async () => {
     mockGenerateContent
       .mockRejectedValueOnce(new Error("Network error"))
       .mockResolvedValueOnce({
-        response: { text: () => JSON.stringify(validTaskData) },
+        response: { text: () => JSON.stringify(validStepData) },
       });
 
     const result = await processWithGemini("prompt", "ctx");
 
-    expect(result).toEqual(validTaskData);
+    expect(result).toEqual(validStepData);
     expect(mockGenerateContent).toHaveBeenCalledTimes(2);
   });
 

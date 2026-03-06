@@ -56,8 +56,8 @@ The final system behaves as an **AI Agent UI**, enabling users to complete compl
 
 # Task 1: Redesign Structured Output Schema
 
-* [ ] Open `app/actions/processUserInput.js`
-* [ ] Replace the previous response schema with a **generic workflow schema**
+* [x] Open `app/actions/processUserInput.js`
+* [x] Replace the previous response schema with a **generic workflow schema**
 
 New required fields:
 
@@ -94,10 +94,10 @@ placeholder?: string
 required?: boolean
 ```
 
-* [ ] Remove `pendingAction`
-* [ ] Update Gemini prompt instructions to explain the workflow format
-* [ ] Ensure `responseMimeType: "application/json"`
-* [ ] Mark completed
+* [x] Remove `pendingAction`
+* [x] Update Gemini prompt instructions to explain the workflow format
+* [x] Ensure `responseMimeType: "application/json"`
+* [x] Mark completed
 
 ---
 
