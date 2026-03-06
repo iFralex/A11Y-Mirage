@@ -261,11 +261,11 @@ Example:
 
 # Task 7: Build Step Container UI
 
-- [ ] Update `DynamicTaskContainer.jsx`
+- [x] Update `DynamicTaskContainer.jsx`
 
-- [ ] Rename to `WorkflowStepContainer.jsx`
+- [x] Rename to `WorkflowStepContainer.jsx`
 
-- [ ] Render:
+- [x] Render:
 
 ```
 Task name
@@ -274,23 +274,23 @@ Estimated remaining steps
 State summary
 ```
 
-- [ ] Display progress indicator:
+- [x] Display progress indicator:
 
 ```
 Step X
 ~Y steps remaining
 ```
 
-- [ ] Render `DynamicStepRenderer`
+- [x] Render `DynamicStepRenderer`
 
-- [ ] Add buttons:
+- [x] Add buttons:
 
 ```
 Submit Step
 Previous Step
 ```
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
