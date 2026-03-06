@@ -183,23 +183,23 @@ logs/gemini-errors.log
 
 # Task 5: Create Generic Multi-Input Renderer
 
-- [ ] Replace `DynamicTaskRenderer.jsx`
+- [x] Replace `DynamicTaskRenderer.jsx`
 
-- [ ] Rename to `DynamicStepRenderer.jsx`
+- [x] Rename to `DynamicStepRenderer.jsx`
 
-- [ ] Accept prop:
+- [x] Accept prop:
 
 ```
 inputs: array
 ```
 
-- [ ] Iterate through inputs:
+- [x] Iterate through inputs:
 
 ```
 inputs.map(input => renderInput(input))
 ```
 
-- [ ] Implement renderer switch:
+- [x] Implement renderer switch:
 
 ```
 text_input
@@ -213,7 +213,7 @@ rating
 slider
 ```
 
-- [ ] Ensure each input:
+- [x] Ensure each input:
 
 * has `Label`
 
@@ -223,7 +223,7 @@ slider
 
 * semantic grouping when needed
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
