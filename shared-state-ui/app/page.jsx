@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ContextSetup from "@/app/components/ContextSetup";
 import WorkflowStepContainer from "@/app/components/WorkflowStepContainer";
+import WorkflowDebugConsole from "@/app/components/WorkflowDebugConsole";
 import { useSharedStateStore } from "@/app/store/useSharedState";
 import { processWithGemini } from "@/app/actions/processUserInput";
 
@@ -49,6 +50,7 @@ export default function Home() {
           </h1>
           <WorkflowStepContainer />
         </main>
+        <WorkflowDebugConsole />
       </div>
     );
   }
@@ -84,6 +86,7 @@ export default function Home() {
           </button>
         </form>
       </main>
+      <WorkflowDebugConsole />
     </div>
   );
 }

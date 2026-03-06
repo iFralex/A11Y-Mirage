@@ -465,7 +465,7 @@ npx playwright test
 
 # Task 15: Workflow Debug Console
 
-- [ ] Add optional debug panel
+- [x] Add optional debug panel
 
 Show:
 
@@ -476,10 +476,10 @@ current responses
 estimated steps
 ```
 
-- [ ] Render only in development mode
+- [x] Render only in development mode
 
 ```
 process.env.NODE_ENV === "development"
 ```
 
-- [ ] Mark completed
+- [x] Mark completed
