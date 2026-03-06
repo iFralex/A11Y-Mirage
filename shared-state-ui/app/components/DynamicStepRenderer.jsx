@@ -1,17 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-function renderSingleInput(input, responses, updateResponses) {
+function validateResponses(inputs, responses) {
+  const errors = {};
+  inputs.forEach(({ id, required, type }) => {
+    if (!required) return;
+    const val = responses[id];
+    if (type === 'multi_select') {
+      if (!Array.isArray(val) || val.length === 0) {
+        errors[id] = 'This field is required';
+      }
+    } else if (type === 'boolean_confirm') {
+      if (!val) errors[id] = 'This must be confirmed';
+    } else if (val === undefined || val === null || val === '') {
+      errors[id] = 'This field is required';
+    }
+  });
+  return errors;
+}
+
+function renderSingleInput(input, responses, updateResponses, clearError) {
   const { id, type, label, options = [], placeholder, required } = input;
   const value = responses[id] ?? '';
 
   const updateValue = (val) => {
     updateResponses((prev) => ({ ...prev, [id]: val }));
+    clearError(id);
   };
 
   switch (type) {
@@ -174,14 +193,37 @@ function renderSingleInput(input, responses, updateResponses) {
   }
 }
 
-export default function DynamicStepRenderer({ inputs = [], onResponsesChange }) {
-  const [responses, setResponses] = useState({});
+const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
+  { inputs = [], onResponsesChange },
+  ref
+) {
+  const [stepResponses, setStepResponses] = useState({});
+  const [errors, setErrors] = useState({});
+
+  useImperativeHandle(ref, () => ({
+    validate() {
+      const newErrors = validateResponses(inputs, stepResponses);
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    },
+    getResponses() {
+      return stepResponses;
+    },
+  }));
 
   const updateResponses = (updater) => {
-    setResponses((prev) => {
+    setStepResponses((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       onResponsesChange?.(next);
       return next;
+    });
+  };
+
+  const clearError = (id) => {
+    setErrors((prev) => {
+      if (!prev[id]) return prev;
+      const { [id]: _, ...rest } = prev;
+      return rest;
     });
   };
 
@@ -189,7 +231,18 @@ export default function DynamicStepRenderer({ inputs = [], onResponsesChange }) 
 
   return (
     <div className="flex flex-col gap-4">
-      {inputs.map((input) => renderSingleInput(input, responses, updateResponses))}
+      {inputs.map((input) => (
+        <div key={input.id}>
+          {renderSingleInput(input, stepResponses, updateResponses, clearError)}
+          {errors[input.id] && (
+            <p role="alert" className="text-red-600 text-sm mt-1">
+              {errors[input.id]}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
-}
+});
+
+export default DynamicStepRenderer;

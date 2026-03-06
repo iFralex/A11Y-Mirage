@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { createRef } from 'react';
 import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
 
 describe('DynamicStepRenderer', () => {
@@ -241,6 +242,69 @@ describe('DynamicStepRenderer', () => {
       const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1][0];
       expect(lastCall.name).toBe('Alice');
       expect(lastCall.age).toBe('25');
+    });
+  });
+
+  describe('validation via ref', () => {
+    const requiredInputs = [
+      { id: 'name', type: 'text_input', label: 'Name', required: true },
+      { id: 'age', type: 'number_input', label: 'Age', required: false },
+    ];
+
+    it('validate() returns false and shows error when required field is empty', () => {
+      const ref = createRef();
+      render(<DynamicStepRenderer ref={ref} inputs={requiredInputs} />);
+      let result;
+      act(() => { result = ref.current.validate(); });
+      expect(result).toBe(false);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('validate() returns true when all required fields are filled', () => {
+      const ref = createRef();
+      render(<DynamicStepRenderer ref={ref} inputs={requiredInputs} />);
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Alice' } });
+      let result;
+      act(() => { result = ref.current.validate(); });
+      expect(result).toBe(true);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('getResponses() returns current stepResponses', () => {
+      const ref = createRef();
+      render(<DynamicStepRenderer ref={ref} inputs={requiredInputs} />);
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Bob' } });
+      act(() => {});
+      expect(ref.current.getResponses()).toEqual({ name: 'Bob' });
+    });
+
+    it('clears error for a field when its value changes', () => {
+      const ref = createRef();
+      render(<DynamicStepRenderer ref={ref} inputs={requiredInputs} />);
+      act(() => { ref.current.validate(); });
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Carol' } });
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('validate() shows error for required multi_select with no selection', () => {
+      const ref = createRef();
+      const inputs = [{ id: 'tags', type: 'multi_select', label: 'Tags', options: ['A', 'B'], required: true }];
+      render(<DynamicStepRenderer ref={ref} inputs={inputs} />);
+      let result;
+      act(() => { result = ref.current.validate(); });
+      expect(result).toBe(false);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('validate() passes for required multi_select with at least one selection', () => {
+      const ref = createRef();
+      const inputs = [{ id: 'tags', type: 'multi_select', label: 'Tags', options: ['A', 'B'], required: true }];
+      render(<DynamicStepRenderer ref={ref} inputs={inputs} />);
+      fireEvent.click(screen.getByLabelText('A'));
+      let result;
+      act(() => { result = ref.current.validate(); });
+      expect(result).toBe(true);
     });
   });
 });

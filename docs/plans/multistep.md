@@ -229,15 +229,15 @@ slider
 
 # Task 6: Support Multiple Inputs per Step
 
-- [ ] Create local component state:
+- [x] Create local component state:
 
 ```
 stepResponses
 ```
 
-- [ ] Update state on each input change
+- [x] Update state on each input change
 
-- [ ] Ensure response object format:
+- [x] Ensure response object format:
 
 ```
 {
@@ -254,8 +254,8 @@ Example:
 }
 ```
 
-- [ ] Validate required inputs before submit
-- [ ] Mark completed
+- [x] Validate required inputs before submit
+- [x] Mark completed
 
 ---
 
