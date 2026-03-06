@@ -142,6 +142,16 @@ export async function processWithGemini(userInput, systemContext, workflowState)
       const response = await model.generateContent(prompt);
       const parsed = JSON.parse(response.response.text());
       validateStepResponse(parsed);
+      fs.appendFileSync(
+        path.join(process.cwd(), "logs", "workflow-history.log"),
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          taskId: parsed.taskId,
+          stepNumber: parsed.stepNumber,
+          userResponse: userInput,
+          modelResponse: parsed,
+        }) + "\n"
+      );
       return parsed;
     } catch (error) {
       lastError = error;

@@ -401,13 +401,13 @@ fieldset for grouped inputs
 
 # Task 13: Logging System
 
-- [ ] Create file:
+- [x] Create file:
 
 ```
 logs/workflow-history.log
 ```
 
-- [ ] Log:
+- [x] Log:
 
 ```
 timestamp
@@ -417,9 +417,9 @@ userResponse
 modelResponse
 ```
 
-- [ ] Use `fs.appendFileSync`
+- [x] Use `fs.appendFileSync`
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
