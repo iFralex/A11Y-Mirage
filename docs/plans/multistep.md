@@ -425,7 +425,7 @@ modelResponse
 
 # Task 14: End-to-End Workflow Testing
 
-- [ ] Update `e2e/user-flow.spec.js`
+- [x] Update `e2e/user-flow.spec.js`
 
 Add tests:
 
@@ -453,13 +453,13 @@ Workflow persistence after reload
 
 Accessibility validation with axe
 
-- [ ] Run:
+- [x] Run:
 
 ```
 npx playwright test
 ```
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
