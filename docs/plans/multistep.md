@@ -146,7 +146,7 @@ setEstimatedSteps(n)
 
 # Task 3: Build Step History Management
 
-* [ ] Create file `app/utils/workflowHelpers.js`
+* [x] Create file `app/utils/workflowHelpers.js`
 
 Add helper functions:
 
@@ -156,8 +156,8 @@ extractStepResults(steps)
 getCurrentStep(steps, index)
 ```
 
-* [ ] Ensure the full step history is passed to the model
-* [ ] Format history like:
+* [x] Ensure the full step history is passed to the model
+* [x] Format history like:
 
 ```
 Step 1 Question
@@ -166,7 +166,7 @@ Step 2 Question
 Step 2 Response
 ```
 
-* [ ] Mark completed
+* [x] Mark completed
 
 ---
 

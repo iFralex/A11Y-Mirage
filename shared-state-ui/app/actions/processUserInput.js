@@ -3,6 +3,7 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import fs from "fs";
 import path from "path";
+import { buildConversationMemory } from "../utils/workflowHelpers";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -105,14 +106,10 @@ export async function processWithGemini(userInput, systemContext, workflowState)
   }
 
   if (workflowState && workflowState.steps && workflowState.steps.length > 0) {
-    prompt += "Workflow History:\n";
-    for (const step of workflowState.steps) {
-      prompt += `Step ${step.stepNumber}: ${step.questionSummary}\n`;
-      if (step.response) {
-        prompt += `User Response: ${JSON.stringify(step.response)}\n`;
-      }
+    const history = buildConversationMemory(workflowState.steps);
+    if (history) {
+      prompt += "Workflow History:\n" + history + "\n\n";
     }
-    prompt += "\n";
   }
 
   prompt += "User Input: " + userInput;
