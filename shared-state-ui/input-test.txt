@@ -1,0 +1,156 @@
+
+
+
+Ecco 5 scenari di test complessi, progettati per mettere alla prova la capacità del LLM (Gemini 3 Flash) di digerire contesti lunghi o intricati e collassarli nel perfetto paradigma "Shared State". 
+
+Per ogni test, ti fornisco il **Contesto** (da incollare nella prima schermata di setup), il **Prompt dell'Utente** e il **Risultato JSON Atteso**, così potrai verificare se l'interfaccia reagisce correttamente.
+
+---
+
+### Test 1: L'Incastro d'Agenda Impossibile (`meeting_coordination`)
+*Mette alla prova la capacità logica del LLM di trovare intersezioni temporali nascoste in un thread di email simulato e formulare opzioni ristrette.*
+
+* **Contesto (da incollare nel setup):**
+  > "Thread email: Call revisione Q3. 
+  > CEO (Marta): Sono in viaggio martedì. Libera mercoledì solo dopo le 16:00. Giovedì mattina off-limits.
+  > CTO (Davide): Posso mercoledì mattina fino alle 12, oppure il pomeriggio dalle 16:30 alle 18:00. Giovedì tutto il giorno va bene.
+  > Lead Designer (Anna): Mercoledì ho un workshop, posso fuggire solo per 30 minuti tra le 16:30 e le 17:30. Giovedì sono in ferie."
+* **Prompt dell'Utente:**
+  > "Devo fissare la call per la revisione del Q3 con Marta, Davide e Anna. C'è un buco in cui ci siamo tutti?"
+* **Comportamento Atteso (JSON):**
+  L'LLM deve capire che l'unico slot possibile incrociando tutti i vincoli è Mercoledì tra le 16:30 e le 17:30.
+  ```json
+  {
+    "taskId": "task-001",
+    "taskType": "meeting_coordination",
+    "stateSummary": "L'unica finestra comune per Marta, Davide e Anna è questo Mercoledì pomeriggio, poiché Giovedì Anna è in ferie e Marta è occupata la mattina.",
+    "pendingAction": {
+      "type": "select_option",
+      "question": "In quale orario esatto vuoi fissare la call da 30 minuti?",
+      "options":["16:30 - 17:00", "17:00 - 17:30"]
+    }
+  }
+  ```
+
+---
+
+### Test 2: Approvazione con Violazione di Policy (`document_approval`)
+*Verifica la capacità del LLM di confrontare una richiesta con un regolamento aziendale ed esporre il rischio all'utente.*
+
+* **Contesto (da incollare nel setup):**
+  > "Estratto Policy Viaggi Aziendali v4.2: Le spese di pernottamento non devono superare i 150€ a notte per l'Europa. Pasti max 50€ al giorno. Le eccezioni richiedono approvazione esplicita del manager.
+  > Richiesta #882: Trasferta a Londra di 'Marco Bianchi'. Notti: 2. Costo Hotel totale: 420€. Costo Pasti totale: 90€."
+* **Prompt dell'Utente:**
+  > "Fammi vedere l'ultima nota spese di Marco Bianchi, posso approvarla?"
+* **Comportamento Atteso (JSON):**
+  L'LLM rileva che l'hotel supera il budget (210€/notte invece di 150€) ma i pasti no.
+  ```json
+  {
+    "taskId": "task-002",
+    "taskType": "document_approval",
+    "stateSummary": "La nota spese di Marco Bianchi per Londra rispetta il limite sui pasti, ma il costo dell'hotel (210€ a notte) supera il limite aziendale di 150€. Serve una tua deroga per procedere.",
+    "pendingAction": {
+      "type": "boolean_confirm",
+      "question": "Vuoi approvare comunque la nota spese includendo la deroga per l'hotel?"
+    }
+  }
+  ```
+
+---
+
+### Test 3: Estrazione Dati Tecnici Mancanti (`data_collection`)
+*L'utente fa una richiesta lunga e discorsiva, ma dimentica un parametro tecnico essenziale. L'LLM deve ignorare il "rumore" e chiedere solo ciò che manca.*
+
+* **Contesto (da incollare nel setup):**
+  > "Sistema Ticketing IT. Campi obbligatori per la sostituzione hardware: 1) Nome dipendente, 2) Modello attuale, 3) Asset Tag (codice di 6 cifre sul retro), 4) Motivo della sostituzione."
+* **Prompt dell'Utente:**
+  > "Ciao, sono Giulia del marketing. Il mio portatile è caduto ieri e lo schermo è completamente distrutto, non si vede più niente. È un Dell XPS 15. Ho un evento la prossima settimana e me ne serve uno nuovo urgentemente, fate il prima possibile per favore!"
+* **Comportamento Atteso (JSON):**
+  L'LLM ha tutto (Nome, Modello, Motivo) tranne l'Asset Tag.
+  ```json
+  {
+    "taskId": "task-003",
+    "taskType": "data_collection",
+    "stateSummary": "Sto creando un ticket urgente per la sostituzione del tuo Dell XPS 15 con schermo rotto.",
+    "pendingAction": {
+      "type": "text_input",
+      "question": "Per procedere, inserisci l'Asset Tag (il codice di 6 cifre che trovi sul retro del PC):"
+    }
+  }
+  ```
+
+---
+
+### Test 4: Risoluzione di Conflitti Multipli (`data_collection` o `select_option`)
+*Testa come l'LLM gestisce la mancanza di risorse (es. aule) proponendo alternative intelligenti.*
+
+* **Contesto (da incollare nel setup):**
+  > "Pianificazione Kickoff Progetto X. Partecipanti: 5. 
+  > Tutti hanno confermato disponibilità per Giovedì alle 14:00.
+  > Risorse necessarie richieste dal PM: Proiettore e Lavagna Interattiva.
+  > Stato sale riunioni per Giovedì ore 14:00: Sala A (Occupata), Sala B (Libera, ma senza proiettore), Sala C (Libera alle 15:00, dotata di proiettore e lavagna)."
+* **Prompt dell'Utente:**
+  > "Chiudi l'organizzazione per il kickoff di giovedì, abbiamo tutto confermato?"
+* **Comportamento Atteso (JSON):**
+  L'LLM incrocia la richiesta del PM con le sale e nota che per le 14:00 non ci sono sale adeguate, proponendo un compromesso temporale o tecnico.
+  ```json
+  {
+    "taskId": "task-004",
+    "taskType": "meeting_coordination",
+    "stateSummary": "Tutti i partecipanti sono disponibili per Giovedì alle 14:00, ma nessuna sala con proiettore è libera a quell'ora. La Sala C (attrezzata) si libera alle 15:00.",
+    "pendingAction": {
+      "type": "select_option",
+      "question": "Come preferisci procedere?",
+      "options":[
+        "Sposta il meeting alle 15:00 in Sala C (con proiettore)",
+        "Mantieni le 14:00 in Sala B (senza proiettore)"
+      ]
+    }
+  }
+  ```
+
+---
+
+### Test 5: Onboarding e Dati Sensibili (`data_collection`)
+*Scenario in cui sono richiesti più dati sparsi. Il sistema deve generare una transizione di stato pulita chiedendo il dato mancante cruciale per sbloccare l'iter.*
+
+* **Contesto (da incollare nel setup):**
+  > "Procedura Onboarding HR - Fase 1 (Immatricolazione).
+  > Documenti richiesti: Copia Carta d'Identità, Codice Fiscale, Contratto Firmato, IBAN per accredito stipendio.
+  > Pratica #4092 (Nuova Assunzione: Luigi Verdi): Carta d'Identità [Ricevuta], Codice Fiscale [Ricevuto], Contratto [Firmato e Ricevuto]."
+* **Prompt dell'Utente:**
+  > "Voglio chiudere la fase 1 dell'onboarding di Luigi Verdi oggi stesso, mando i dati al payroll?"
+* **Comportamento Atteso (JSON):**
+  L'LLM vede che manca l'IBAN per completare la fase 1 e non fa procedere alla cieca.
+  ```json
+  {
+    "taskId": "task-005",
+    "taskType": "data_collection",
+    "stateSummary": "I documenti d'identità e il contratto di Luigi Verdi sono stati processati correttamente. Manca solo un dato per chiudere la Fase 1 e inoltrare al Payroll.",
+    "pendingAction": {
+      "type": "text_input",
+      "question": "Inserisci l'IBAN di Luigi Verdi per l'accredito dello stipendio:"
+    }
+  }
+  ```
+
+---
+### Come usare questi test
+Quando l'interfaccia è pronta:
+1. Apri l'app e incolla il blocco **"Contesto"** nella `<textarea>` della fase di Setup. Clicca "Salva".
+2. L'app passerà alla schermata di interazione principale.
+3. Attiva lo **Screen Reader** (VoiceOver su Mac o NVDA su Windows).
+4. Incolla il **Prompt dell'Utente** e premi "Invia Richiesta".
+5. Chiudi gli occhi e ascolta: se l'accessibilità è implementata correttamente, sentirai un *"Elaborazione in corso..."* seguito direttamente dall'annuncio del titolo del nuovo Task, il riassunto della situazione e infine il campo di input in cui inserire o selezionare la risposta esatta.
+
+
+Carlo dice:
+Che ne dite di vederci per il progetto di scienze giovedì?
+Marco dice:
+No, ho da fare. Venerdì?
+Carlo dice:
+Va bene. Io preferisco la mattina.
+Marco dice:
+Per me venerdì va bene tutto il giorno. Chiediamo ad Alessio se gli va bene e se mattina o pomeriggio.
+Carlo dice:
+Io sto andando 
