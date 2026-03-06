@@ -103,8 +103,8 @@ required?: boolean
 
 # Task 2: Introduce Workflow State Model
 
-* [ ] Open `app/store/useSharedState.js`
-* [ ] Add new state variables:
+* [x] Open `app/store/useSharedState.js`
+* [x] Add new state variables:
 
 ```
 workflow: {
@@ -117,7 +117,7 @@ currentStepIndex: 0
 estimatedRemainingSteps: null
 ```
 
-* [ ] Each step stored as:
+* [x] Each step stored as:
 
 ```
 {
@@ -129,7 +129,7 @@ estimatedRemainingSteps: null
 }
 ```
 
-* [ ] Add actions:
+* [x] Add actions:
 
 ```
 addStep(step)
@@ -139,8 +139,8 @@ resetWorkflow()
 setEstimatedSteps(n)
 ```
 
-* [ ] Ensure state persists using Zustand `persist`
-* [ ] Mark completed
+* [x] Ensure state persists using Zustand `persist`
+* [x] Mark completed
 
 ---
 
