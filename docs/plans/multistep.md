@@ -360,24 +360,24 @@ call Gemini with empty workflow
 
 # Task 11: Session Persistence & Reset
 
-- [ ] Zustand persist already enabled
+- [x] Zustand persist already enabled
 
-- [ ] Add button in UI:
+- [x] Add button in UI:
 
 ```
 Reset Workflow
 ```
 
-- [ ] On click:
+- [x] On click:
 
 ```
 resetWorkflow()
 setSystemContext("")
 ```
 
-- [ ] Return to ContextSetup screen
+- [x] Return to ContextSetup screen
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 

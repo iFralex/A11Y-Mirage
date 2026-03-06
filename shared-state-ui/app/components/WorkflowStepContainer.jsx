@@ -15,6 +15,8 @@ export default function WorkflowStepContainer() {
   const error = useSharedStateStore((state) => state.error);
   const systemContext = useSharedStateStore((state) => state.systemContext);
   const goToPreviousStep = useSharedStateStore((state) => state.goToPreviousStep);
+  const resetWorkflow = useSharedStateStore((state) => state.resetWorkflow);
+  const setSystemContext = useSharedStateStore((state) => state.setSystemContext);
   const updateStepResponse = useSharedStateStore((state) => state.updateStepResponse);
   const addStep = useSharedStateStore((state) => state.addStep);
   const setLoading = useSharedStateStore((state) => state.setLoading);
@@ -63,6 +65,11 @@ export default function WorkflowStepContainer() {
 
   const handlePrevious = () => {
     goToPreviousStep();
+  };
+
+  const handleReset = () => {
+    resetWorkflow();
+    setSystemContext("");
   };
 
   return (
@@ -116,7 +123,7 @@ export default function WorkflowStepContainer() {
             initialResponses={currentStep.response || {}}
           />
 
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap">
             <Button onClick={handleSubmit} className="self-start">
               Submit Step
             </Button>
@@ -126,6 +133,13 @@ export default function WorkflowStepContainer() {
               disabled={currentStepIndex === 0}
             >
               Previous Step
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReset}
+              className="ml-auto"
+            >
+              Reset Workflow
             </Button>
           </div>
         </div>
