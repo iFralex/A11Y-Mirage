@@ -296,7 +296,7 @@ Previous Step
 
 # Task 8: Implement Step Navigation
 
-- [ ] Add previous step button
+- [x] Add previous step button
 
 Logic:
 
@@ -305,11 +305,11 @@ if(currentStepIndex > 0)
   goToPreviousStep()
 ```
 
-- [ ] Load previous responses into inputs
+- [x] Load previous responses into inputs
 
-- [ ] Disable editing past steps unless returning to them
+- [x] Disable editing past steps unless returning to them
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 

@@ -194,10 +194,10 @@ function renderSingleInput(input, responses, updateResponses, clearError) {
 }
 
 const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
-  { inputs = [], onResponsesChange },
+  { inputs = [], initialResponses = {}, onResponsesChange },
   ref
 ) {
-  const [stepResponses, setStepResponses] = useState({});
+  const [stepResponses, setStepResponses] = useState(initialResponses);
   const [errors, setErrors] = useState({});
 
   useImperativeHandle(ref, () => ({

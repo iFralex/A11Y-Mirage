@@ -83,6 +83,7 @@ export default function WorkflowStepContainer() {
             ref={stepRendererRef}
             key={currentStep.stepId}
             inputs={currentStep.inputs || []}
+            initialResponses={currentStep.response || {}}
           />
 
           <div className="flex gap-2 mt-2">
