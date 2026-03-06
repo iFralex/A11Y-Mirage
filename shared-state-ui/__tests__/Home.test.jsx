@@ -7,17 +7,21 @@ vi.mock('../app/actions/processUserInput', () => ({
   processWithGemini: vi.fn(),
 }));
 
-vi.mock('../app/components/DynamicTaskContainer', () => ({
-  default: () => <div data-testid="dynamic-task-container" />,
+vi.mock('../app/components/WorkflowStepContainer', () => ({
+  default: () => <div data-testid="workflow-step-container" />,
 }));
 
 import { processWithGemini } from '../app/actions/processUserInput';
 
-const mockTaskData = {
-  taskId: '1',
-  taskType: 'meeting_coordination',
-  stateSummary: 'Summary',
-  pendingAction: { type: 'text_input', question: 'Q?', options: [] },
+const mockFirstStep = {
+  taskId: 'task-1',
+  taskType: 'generic',
+  taskName: 'Test Task',
+  stepId: 'step-1',
+  stepNumber: 1,
+  estimatedRemainingSteps: 3,
+  stateSummary: 'Starting',
+  inputs: [{ id: 'q1', type: 'text_input', label: 'Q?', required: true }],
 };
 
 describe('Home page', () => {
@@ -25,6 +29,9 @@ describe('Home page', () => {
     useSharedStateStore.setState({
       systemContext: '',
       taskData: null,
+      workflow: { taskId: null, taskName: '', steps: [] },
+      currentStepIndex: 0,
+      estimatedRemainingSteps: null,
       isLoading: false,
       error: null,
     });
@@ -36,17 +43,21 @@ describe('Home page', () => {
     expect(screen.getByText('Inizializzazione del Contesto')).toBeInTheDocument();
   });
 
-  it('renders the prompt form when systemContext is set', () => {
+  it('renders the prompt form when systemContext is set and no workflow steps', () => {
     useSharedStateStore.setState({ systemContext: 'some context' });
     render(<Home />);
     expect(screen.getByLabelText('La tua richiesta')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Invia Richiesta' })).toBeInTheDocument();
   });
 
-  it('renders DynamicTaskContainer when systemContext is set', () => {
-    useSharedStateStore.setState({ systemContext: 'some context' });
+  it('renders WorkflowStepContainer when workflow has steps', () => {
+    useSharedStateStore.setState({
+      systemContext: 'some context',
+      workflow: { taskId: 'task-1', taskName: 'Test', steps: [mockFirstStep] },
+    });
     render(<Home />);
-    expect(screen.getByTestId('dynamic-task-container')).toBeInTheDocument();
+    expect(screen.getByTestId('workflow-step-container')).toBeInTheDocument();
+    expect(screen.queryByLabelText('La tua richiesta')).not.toBeInTheDocument();
   });
 
   it('does not render prompt form when systemContext is empty', () => {
@@ -54,9 +65,9 @@ describe('Home page', () => {
     expect(screen.queryByRole('button', { name: 'Invia Richiesta' })).not.toBeInTheDocument();
   });
 
-  it('calls processWithGemini on form submit with prompt and context', async () => {
+  it('calls processWithGemini with prompt, context, and empty workflow on first submit', async () => {
     useSharedStateStore.setState({ systemContext: 'test context' });
-    processWithGemini.mockResolvedValueOnce(mockTaskData);
+    processWithGemini.mockResolvedValueOnce(mockFirstStep);
 
     render(<Home />);
     const textarea = screen.getByLabelText('La tua richiesta');
@@ -64,21 +75,27 @@ describe('Home page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Invia Richiesta' }));
 
     await waitFor(() => {
-      expect(processWithGemini).toHaveBeenCalledWith('my prompt', 'test context');
+      expect(processWithGemini).toHaveBeenCalledWith(
+        'my prompt',
+        'test context',
+        { taskId: null, taskName: '', steps: [] }
+      );
     });
   });
 
-  it('calls updateTaskData and setLoading(false) on success', async () => {
+  it('calls addStep and setEstimatedSteps on success', async () => {
     useSharedStateStore.setState({ systemContext: 'test context' });
-    processWithGemini.mockResolvedValueOnce(mockTaskData);
+    processWithGemini.mockResolvedValueOnce(mockFirstStep);
 
     render(<Home />);
     const textarea = screen.getByLabelText('La tua richiesta');
-    fireEvent.change(textarea, { target: { value: 'approve doc' } });
+    fireEvent.change(textarea, { target: { value: 'my prompt' } });
     fireEvent.click(screen.getByRole('button', { name: 'Invia Richiesta' }));
 
     await waitFor(() => {
-      expect(useSharedStateStore.getState().taskData).toEqual(mockTaskData);
+      expect(useSharedStateStore.getState().workflow.steps).toHaveLength(1);
+      expect(useSharedStateStore.getState().workflow.steps[0]).toMatchObject(mockFirstStep);
+      expect(useSharedStateStore.getState().estimatedRemainingSteps).toBe(3);
       expect(useSharedStateStore.getState().isLoading).toBe(false);
     });
   });
@@ -114,7 +131,7 @@ describe('Home page', () => {
       expect(useSharedStateStore.getState().isLoading).toBe(true);
     });
 
-    resolvePromise(mockTaskData);
+    resolvePromise(mockFirstStep);
 
     await waitFor(() => {
       expect(useSharedStateStore.getState().isLoading).toBe(false);
@@ -123,7 +140,7 @@ describe('Home page', () => {
 
   it('clears a previous error before submitting a new request', async () => {
     useSharedStateStore.setState({ systemContext: 'test context', error: 'previous error' });
-    processWithGemini.mockResolvedValueOnce(mockTaskData);
+    processWithGemini.mockResolvedValueOnce(mockFirstStep);
 
     render(<Home />);
     const textarea = screen.getByLabelText('La tua richiesta');

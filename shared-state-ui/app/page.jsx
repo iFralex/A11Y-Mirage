@@ -2,31 +2,55 @@
 
 import { useState } from "react";
 import ContextSetup from "@/app/components/ContextSetup";
-import DynamicTaskContainer from "@/app/components/DynamicTaskContainer";
+import WorkflowStepContainer from "@/app/components/WorkflowStepContainer";
 import { useSharedStateStore } from "@/app/store/useSharedState";
 import { processWithGemini } from "@/app/actions/processUserInput";
 
 export default function Home() {
-  const { systemContext, isLoading, setLoading, clearError, updateTaskData, setError } =
-    useSharedStateStore();
+  const systemContext = useSharedStateStore((state) => state.systemContext);
+  const workflow = useSharedStateStore((state) => state.workflow);
+  const isLoading = useSharedStateStore((state) => state.isLoading);
+  const addStep = useSharedStateStore((state) => state.addStep);
+  const setLoading = useSharedStateStore((state) => state.setLoading);
+  const setError = useSharedStateStore((state) => state.setError);
+  const clearError = useSharedStateStore((state) => state.clearError);
+  const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
+
   const [userPrompt, setUserPrompt] = useState("");
 
   if (!systemContext) {
     return <ContextSetup />;
   }
 
+  const hasWorkflow = workflow.steps.length > 0;
+
   async function handleSubmit(e) {
     e.preventDefault();
     clearError();
     setLoading(true);
     try {
-      const result = await processWithGemini(userPrompt, systemContext);
-      updateTaskData(result);
-      setLoading(false);
+      const emptyWorkflow = { taskId: null, taskName: "", steps: [] };
+      const firstStep = await processWithGemini(userPrompt, systemContext, emptyWorkflow);
+      addStep(firstStep);
+      setEstimatedSteps(firstStep.estimatedRemainingSteps);
     } catch (err) {
       setError(err.message);
+    } finally {
       setLoading(false);
     }
+  }
+
+  if (hasWorkflow) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center py-12 px-4">
+        <main className="w-full max-w-2xl space-y-8">
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+            Shared State AI
+          </h1>
+          <WorkflowStepContainer />
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -59,7 +83,6 @@ export default function Home() {
             Invia Richiesta
           </button>
         </form>
-        <DynamicTaskContainer />
       </main>
     </div>
   );

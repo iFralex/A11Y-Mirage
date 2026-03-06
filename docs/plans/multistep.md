@@ -332,7 +332,7 @@ if(currentStepIndex > 0)
 
 # Task 10: Update Main Page Logic
 
-- [ ] Modify `app/page.js`
+- [x] Modify `app/page.js`
 
 Flow becomes:
 
@@ -346,15 +346,15 @@ Step 1 generated
 Workflow steps
 ```
 
-- [ ] When first prompt submitted:
+- [x] When first prompt submitted:
 
 call Gemini with empty workflow
 
-- [ ] Save first step
+- [x] Save first step
 
-- [ ] Render `WorkflowStepContainer`
+- [x] Render `WorkflowStepContainer`
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
