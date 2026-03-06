@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import WorkflowStepContainer from '../app/components/WorkflowStepContainer';
 import { useSharedStateStore } from '../app/store/useSharedState';
 
@@ -334,6 +334,86 @@ describe('WorkflowStepContainer', () => {
     await waitFor(() => {
       expect(useSharedStateStore.getState().error).toBe('Network failure');
     });
+  });
+
+  it('aria-live polite region exists and starts empty', () => {
+    render(<WorkflowStepContainer />);
+    const politeRegion = document.querySelector('[aria-live="polite"]');
+    expect(politeRegion).toBeInTheDocument();
+    expect(politeRegion.textContent).toBe('');
+  });
+
+  it('aria-live polite region announces step number and task name when a step loads', async () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        isLoading: false,
+        error: null,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    await waitFor(() => {
+      const politeRegion = document.querySelector('[aria-live="polite"]');
+      expect(politeRegion.textContent).toBe('Step 1: Plan a Trip');
+    });
+  });
+
+  it('aria-live polite region updates when step changes', async () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1, STEP_2] },
+        currentStepIndex: 0,
+        isLoading: false,
+        error: null,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    await waitFor(() => {
+      const politeRegion = document.querySelector('[aria-live="polite"]');
+      expect(politeRegion.textContent).toBe('Step 1: Plan a Trip');
+    });
+
+    act(() => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1, STEP_2] },
+          currentStepIndex: 1,
+          isLoading: false,
+          error: null,
+        })
+      );
+    });
+    await waitFor(() => {
+      const politeRegion = document.querySelector('[aria-live="polite"]');
+      expect(politeRegion.textContent).toBe('Step 2: Plan a Trip');
+    });
+  });
+
+  it('does not announce step while loading', () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        isLoading: true,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    const politeRegion = document.querySelector('[aria-live="polite"]');
+    // On initial render with isLoading true, the announcement should not be set yet
+    expect(politeRegion.textContent).toBe('');
+  });
+
+  it('step heading has tabIndex=-1 for programmatic focus management', () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading).toHaveAttribute('tabindex', '-1');
   });
 
   it('submit does not call Gemini when validation fails', async () => {

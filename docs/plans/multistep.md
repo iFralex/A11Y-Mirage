@@ -383,7 +383,7 @@ setSystemContext("")
 
 # Task 12: Accessibility Improvements
 
-- [ ] Ensure:
+- [x] Ensure:
 
 ```
 aria-live updates on step change
@@ -391,11 +391,11 @@ focus management for step title
 fieldset for grouped inputs
 ```
 
-- [ ] Move focus automatically to step heading
+- [x] Move focus automatically to step heading
 
-- [ ] Ensure keyboard navigation across inputs
+- [x] Ensure keyboard navigation across inputs
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSharedStateStore } from '@/app/store/useSharedState';
 import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -29,11 +29,14 @@ export default function WorkflowStepContainer() {
 
   const currentStep = workflow.steps[currentStepIndex] ?? null;
 
+  const [stepAnnouncement, setStepAnnouncement] = useState('');
+
   useEffect(() => {
     if (currentStep && !isLoading && !error) {
       titleRef.current?.focus();
+      setStepAnnouncement(`Step ${currentStep.stepNumber}: ${workflow.taskName}`);
     }
-  }, [currentStep, isLoading, error]);
+  }, [currentStep, isLoading, error, workflow.taskName]);
 
   const handleSubmit = async () => {
     if (!stepRendererRef.current) return;
@@ -81,6 +84,9 @@ export default function WorkflowStepContainer() {
     >
       <div aria-live="assertive" className="sr-only">
         {isLoading ? 'Processing...' : ''}
+      </div>
+      <div aria-live="polite" className="sr-only">
+        {stepAnnouncement}
       </div>
 
       {isLoading && (
