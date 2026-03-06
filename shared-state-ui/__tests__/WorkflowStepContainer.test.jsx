@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import WorkflowStepContainer from '../app/components/WorkflowStepContainer';
 import { useSharedStateStore } from '../app/store/useSharedState';
+
+vi.mock('../app/actions/processUserInput', () => ({
+  processWithGemini: vi.fn(),
+}));
+
+import { processWithGemini } from '../app/actions/processUserInput';
 
 const STEP_1 = {
   stepId: 'step-1',
@@ -244,5 +250,108 @@ describe('WorkflowStepContainer', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 2 })).toHaveFocus();
     });
+  });
+
+  it('submit saves response, calls Gemini, appends next step, and updates estimated steps', async () => {
+    const nextStep = {
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      taskType: 'generic',
+      stepId: 'step-2',
+      stepNumber: 2,
+      estimatedRemainingSteps: 1,
+      stateSummary: 'Choosing dates.',
+      inputs: [{ id: 'travelDate', type: 'date_input', label: 'Travel date', required: false }],
+    };
+    processWithGemini.mockResolvedValueOnce(nextStep);
+
+    useSharedStateStore.setState(
+      baseState({
+        systemContext: 'Plan a trip',
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+
+    const input = screen.getByLabelText('Destination');
+    fireEvent.change(input, { target: { value: 'Rome' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Step' }));
+
+    await waitFor(() => {
+      const state = useSharedStateStore.getState();
+      expect(state.workflow.steps).toHaveLength(2);
+      expect(state.workflow.steps[1].stepId).toBe('step-2');
+      expect(state.estimatedRemainingSteps).toBe(1);
+    });
+
+    expect(processWithGemini).toHaveBeenCalledWith(
+      JSON.stringify({ destination: 'Rome' }),
+      'Plan a trip',
+      expect.objectContaining({ steps: expect.any(Array) })
+    );
+  });
+
+  it('submit saves the current step response in the store', async () => {
+    const nextStep = {
+      taskId: 'task-abc', taskName: 'Plan a Trip', taskType: 'generic',
+      stepId: 'step-2', stepNumber: 2, estimatedRemainingSteps: 0,
+      stateSummary: '', inputs: [{ id: 'x', type: 'text_input', label: 'X' }],
+    };
+    processWithGemini.mockResolvedValueOnce(nextStep);
+
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+
+    fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Tokyo' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Step' }));
+
+    await waitFor(() => {
+      const state = useSharedStateStore.getState();
+      expect(state.workflow.steps[0].response).toEqual({ destination: 'Tokyo' });
+    });
+  });
+
+  it('submit sets error state when Gemini throws', async () => {
+    processWithGemini.mockRejectedValueOnce(new Error('Network failure'));
+
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+
+    fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Paris' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Step' }));
+
+    await waitFor(() => {
+      expect(useSharedStateStore.getState().error).toBe('Network failure');
+    });
+  });
+
+  it('submit does not call Gemini when validation fails', async () => {
+    processWithGemini.mockClear();
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+
+    // Do not fill in the required 'destination' field
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Step' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
+    });
+    expect(processWithGemini).not.toHaveBeenCalled();
   });
 });

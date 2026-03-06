@@ -5,6 +5,7 @@ import { useSharedStateStore } from '@/app/store/useSharedState';
 import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { processWithGemini } from '@/app/actions/processUserInput';
 
 export default function WorkflowStepContainer() {
   const workflow = useSharedStateStore((state) => state.workflow);
@@ -12,7 +13,14 @@ export default function WorkflowStepContainer() {
   const estimatedRemainingSteps = useSharedStateStore((state) => state.estimatedRemainingSteps);
   const isLoading = useSharedStateStore((state) => state.isLoading);
   const error = useSharedStateStore((state) => state.error);
+  const systemContext = useSharedStateStore((state) => state.systemContext);
   const goToPreviousStep = useSharedStateStore((state) => state.goToPreviousStep);
+  const updateStepResponse = useSharedStateStore((state) => state.updateStepResponse);
+  const addStep = useSharedStateStore((state) => state.addStep);
+  const setLoading = useSharedStateStore((state) => state.setLoading);
+  const setError = useSharedStateStore((state) => state.setError);
+  const clearError = useSharedStateStore((state) => state.clearError);
+  const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
 
   const stepRendererRef = useRef(null);
   const titleRef = useRef(null);
@@ -25,9 +33,31 @@ export default function WorkflowStepContainer() {
     }
   }, [currentStep, isLoading, error]);
 
-  const handleSubmit = () => {
-    if (stepRendererRef.current) {
-      stepRendererRef.current.validate();
+  const handleSubmit = async () => {
+    if (!stepRendererRef.current) return;
+    const isValid = stepRendererRef.current.validate();
+    if (!isValid) return;
+
+    const responses = stepRendererRef.current.getResponses();
+    updateStepResponse(currentStep.stepId, responses);
+
+    const updatedSteps = workflow.steps.map((s) =>
+      s.stepId === currentStep.stepId ? { ...s, response: responses } : s
+    );
+    const updatedWorkflow = { ...workflow, steps: updatedSteps };
+
+    const userInput = JSON.stringify(responses);
+
+    clearError();
+    setLoading(true);
+    try {
+      const nextStep = await processWithGemini(userInput, systemContext, updatedWorkflow);
+      addStep(nextStep);
+      setEstimatedSteps(nextStep.estimatedRemainingSteps);
+    } catch (err) {
+      setError(err.message || 'Failed to process step.');
+    } finally {
+      setLoading(false);
     }
   };
 

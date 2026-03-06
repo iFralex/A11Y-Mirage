@@ -315,7 +315,7 @@ if(currentStepIndex > 0)
 
 # Task 9: Step Submission Logic
 
-- [ ] On submit:
+- [x] On submit:
 
 1. Save response in store
 2. Update step history
@@ -324,9 +324,9 @@ if(currentStepIndex > 0)
 5. Append step to workflow
 6. Move `currentStepIndex`
 
-- [ ] Update estimated remaining steps
+- [x] Update estimated remaining steps
 
-- [ ] Mark completed
+- [x] Mark completed
 
 ---
 
