@@ -98,6 +98,28 @@ Rules:
   - rating: 1-5 star rating
   - slider: numeric range selection`;
 
+const REQUIRED_STEP_FIELDS = [
+  "taskId",
+  "taskType",
+  "taskName",
+  "stepId",
+  "stepNumber",
+  "estimatedRemainingSteps",
+  "stateSummary",
+  "inputs",
+];
+
+function validateStepResponse(data) {
+  for (const field of REQUIRED_STEP_FIELDS) {
+    if (data[field] === undefined || data[field] === null) {
+      throw new Error(`Invalid step response: missing required field "${field}"`);
+    }
+  }
+  if (!Array.isArray(data.inputs) || data.inputs.length === 0) {
+    throw new Error("Invalid step response: inputs must be a non-empty array");
+  }
+}
+
 export async function processWithGemini(userInput, systemContext, workflowState) {
   let prompt = WORKFLOW_INSTRUCTIONS + "\n\n";
 
@@ -118,7 +140,9 @@ export async function processWithGemini(userInput, systemContext, workflowState)
   for (let i = 0; i < 2; i++) {
     try {
       const response = await model.generateContent(prompt);
-      return JSON.parse(response.response.text());
+      const parsed = JSON.parse(response.response.text());
+      validateStepResponse(parsed);
+      return parsed;
     } catch (error) {
       lastError = error;
     }

@@ -1,27 +1,3 @@
-Perfetto, le tue risposte definiscono molto bene la direzione. Riassumo brevemente **l'architettura che stai implicitamente scegliendo**, così il piano che segue è coerente:
-
-### Architettura risultante
-
-Il sistema diventa una **AI Agent UI basata su workflow dinamici**:
-
-* **taskType sempre `generic`**
-* `taskName` descrive il task
-* **workflow dinamico**
-* **step generati uno alla volta dal modello**
-* **step influenzati dagli step precedenti**
-* **stato completo salvato nel client**
-* **input UI predefiniti**
-* **step con massimo pochi input**
-* **step history persistita**
-* **utente può tornare indietro**
-* **sessione persistente**
-* **stimatore di step rimanenti**
-* **logging completo**
-
-Questo è molto vicino a un **AI-driven workflow engine**.
-
----
-
 # Plan: Multistep
 
 ## Overview
@@ -56,8 +32,8 @@ The final system behaves as an **AI Agent UI**, enabling users to complete compl
 
 # Task 1: Redesign Structured Output Schema
 
-* [x] Open `app/actions/processUserInput.js`
-* [x] Replace the previous response schema with a **generic workflow schema**
+- [x] Open `app/actions/processUserInput.js`
+- [x] Replace the previous response schema with a **generic workflow schema**
 
 New required fields:
 
@@ -94,17 +70,17 @@ placeholder?: string
 required?: boolean
 ```
 
-* [x] Remove `pendingAction`
-* [x] Update Gemini prompt instructions to explain the workflow format
-* [x] Ensure `responseMimeType: "application/json"`
-* [x] Mark completed
+- [x] Remove `pendingAction`
+- [x] Update Gemini prompt instructions to explain the workflow format
+- [x] Ensure `responseMimeType: "application/json"`
+- [x] Mark completed
 
 ---
 
 # Task 2: Introduce Workflow State Model
 
-* [x] Open `app/store/useSharedState.js`
-* [x] Add new state variables:
+- [x] Open `app/store/useSharedState.js`
+- [x] Add new state variables:
 
 ```
 workflow: {
@@ -117,7 +93,7 @@ currentStepIndex: 0
 estimatedRemainingSteps: null
 ```
 
-* [x] Each step stored as:
+- [x] Each step stored as:
 
 ```
 {
@@ -129,7 +105,7 @@ estimatedRemainingSteps: null
 }
 ```
 
-* [x] Add actions:
+- [x] Add actions:
 
 ```
 addStep(step)
@@ -139,14 +115,14 @@ resetWorkflow()
 setEstimatedSteps(n)
 ```
 
-* [x] Ensure state persists using Zustand `persist`
-* [x] Mark completed
+- [x] Ensure state persists using Zustand `persist`
+- [x] Mark completed
 
 ---
 
 # Task 3: Build Step History Management
 
-* [x] Create file `app/utils/workflowHelpers.js`
+- [x] Create file `app/utils/workflowHelpers.js`
 
 Add helper functions:
 
@@ -156,8 +132,8 @@ extractStepResults(steps)
 getCurrentStep(steps, index)
 ```
 
-* [x] Ensure the full step history is passed to the model
-* [x] Format history like:
+- [x] Ensure the full step history is passed to the model
+- [x] Format history like:
 
 ```
 Step 1 Question
@@ -166,20 +142,20 @@ Step 2 Question
 Step 2 Response
 ```
 
-* [x] Mark completed
+- [x] Mark completed
 
 ---
 
 # Task 4: Update Server Action for Step-based Workflow
 
-* [ ] Open `processUserInput.js`
-* [ ] Modify function signature:
+- [x] Open `processUserInput.js`
+- [x] Modify function signature:
 
 ```
 processWithGemini(userInput, systemContext, workflowState)
 ```
 
-* [ ] Build prompt including:
+- [x] Build prompt including:
 
 ```
 systemContext
@@ -187,43 +163,43 @@ workflow history
 last user response
 ```
 
-* [ ] Request the **next step only**
+- [x] Request the **next step only**
 
-* [ ] Parse and validate response
+- [x] Parse and validate response
 
-* [ ] Return new step object
+- [x] Return new step object
 
-* [ ] Keep retry loop (max 2 attempts)
+- [x] Keep retry loop (max 2 attempts)
 
-* [ ] Log failures to:
+- [x] Log failures to:
 
 ```
 logs/gemini-errors.log
 ```
 
-* [ ] Mark completed
+- [x] Mark completed
 
 ---
 
 # Task 5: Create Generic Multi-Input Renderer
 
-* [ ] Replace `DynamicTaskRenderer.jsx`
+- [ ] Replace `DynamicTaskRenderer.jsx`
 
-* [ ] Rename to `DynamicStepRenderer.jsx`
+- [ ] Rename to `DynamicStepRenderer.jsx`
 
-* [ ] Accept prop:
+- [ ] Accept prop:
 
 ```
 inputs: array
 ```
 
-* [ ] Iterate through inputs:
+- [ ] Iterate through inputs:
 
 ```
 inputs.map(input => renderInput(input))
 ```
 
-* [ ] Implement renderer switch:
+- [ ] Implement renderer switch:
 
 ```
 text_input
@@ -237,7 +213,7 @@ rating
 slider
 ```
 
-* [ ] Ensure each input:
+- [ ] Ensure each input:
 
 * has `Label`
 
@@ -247,21 +223,21 @@ slider
 
 * semantic grouping when needed
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 6: Support Multiple Inputs per Step
 
-* [ ] Create local component state:
+- [ ] Create local component state:
 
 ```
 stepResponses
 ```
 
-* [ ] Update state on each input change
+- [ ] Update state on each input change
 
-* [ ] Ensure response object format:
+- [ ] Ensure response object format:
 
 ```
 {
@@ -278,18 +254,18 @@ Example:
 }
 ```
 
-* [ ] Validate required inputs before submit
-* [ ] Mark completed
+- [ ] Validate required inputs before submit
+- [ ] Mark completed
 
 ---
 
 # Task 7: Build Step Container UI
 
-* [ ] Update `DynamicTaskContainer.jsx`
+- [ ] Update `DynamicTaskContainer.jsx`
 
-* [ ] Rename to `WorkflowStepContainer.jsx`
+- [ ] Rename to `WorkflowStepContainer.jsx`
 
-* [ ] Render:
+- [ ] Render:
 
 ```
 Task name
@@ -298,29 +274,29 @@ Estimated remaining steps
 State summary
 ```
 
-* [ ] Display progress indicator:
+- [ ] Display progress indicator:
 
 ```
 Step X
 ~Y steps remaining
 ```
 
-* [ ] Render `DynamicStepRenderer`
+- [ ] Render `DynamicStepRenderer`
 
-* [ ] Add buttons:
+- [ ] Add buttons:
 
 ```
 Submit Step
 Previous Step
 ```
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 8: Implement Step Navigation
 
-* [ ] Add previous step button
+- [ ] Add previous step button
 
 Logic:
 
@@ -329,17 +305,17 @@ if(currentStepIndex > 0)
   goToPreviousStep()
 ```
 
-* [ ] Load previous responses into inputs
+- [ ] Load previous responses into inputs
 
-* [ ] Disable editing past steps unless returning to them
+- [ ] Disable editing past steps unless returning to them
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 9: Step Submission Logic
 
-* [ ] On submit:
+- [ ] On submit:
 
 1. Save response in store
 2. Update step history
@@ -348,15 +324,15 @@ if(currentStepIndex > 0)
 5. Append step to workflow
 6. Move `currentStepIndex`
 
-* [ ] Update estimated remaining steps
+- [ ] Update estimated remaining steps
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 10: Update Main Page Logic
 
-* [ ] Modify `app/page.js`
+- [ ] Modify `app/page.js`
 
 Flow becomes:
 
@@ -370,44 +346,44 @@ Step 1 generated
 Workflow steps
 ```
 
-* [ ] When first prompt submitted:
+- [ ] When first prompt submitted:
 
 call Gemini with empty workflow
 
-* [ ] Save first step
+- [ ] Save first step
 
-* [ ] Render `WorkflowStepContainer`
+- [ ] Render `WorkflowStepContainer`
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 11: Session Persistence & Reset
 
-* [ ] Zustand persist already enabled
+- [ ] Zustand persist already enabled
 
-* [ ] Add button in UI:
+- [ ] Add button in UI:
 
 ```
 Reset Workflow
 ```
 
-* [ ] On click:
+- [ ] On click:
 
 ```
 resetWorkflow()
 setSystemContext("")
 ```
 
-* [ ] Return to ContextSetup screen
+- [ ] Return to ContextSetup screen
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 12: Accessibility Improvements
 
-* [ ] Ensure:
+- [ ] Ensure:
 
 ```
 aria-live updates on step change
@@ -415,23 +391,23 @@ focus management for step title
 fieldset for grouped inputs
 ```
 
-* [ ] Move focus automatically to step heading
+- [ ] Move focus automatically to step heading
 
-* [ ] Ensure keyboard navigation across inputs
+- [ ] Ensure keyboard navigation across inputs
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 13: Logging System
 
-* [ ] Create file:
+- [ ] Create file:
 
 ```
 logs/workflow-history.log
 ```
 
-* [ ] Log:
+- [ ] Log:
 
 ```
 timestamp
@@ -441,15 +417,15 @@ userResponse
 modelResponse
 ```
 
-* [ ] Use `fs.appendFileSync`
+- [ ] Use `fs.appendFileSync`
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 14: End-to-End Workflow Testing
 
-* [ ] Update `e2e/user-flow.spec.js`
+- [ ] Update `e2e/user-flow.spec.js`
 
 Add tests:
 
@@ -477,19 +453,19 @@ Workflow persistence after reload
 
 Accessibility validation with axe
 
-* [ ] Run:
+- [ ] Run:
 
 ```
 npx playwright test
 ```
 
-* [ ] Mark completed
+- [ ] Mark completed
 
 ---
 
 # Task 15: Workflow Debug Console
 
-* [ ] Add optional debug panel
+- [ ] Add optional debug panel
 
 Show:
 
@@ -500,10 +476,10 @@ current responses
 estimated steps
 ```
 
-* [ ] Render only in development mode
+- [ ] Render only in development mode
 
 ```
 process.env.NODE_ENV === "development"
 ```
 
-* [ ] Mark completed
+- [ ] Mark completed

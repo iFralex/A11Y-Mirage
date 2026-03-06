@@ -126,4 +126,37 @@ describe("processWithGemini", () => {
       expect.stringContaining("fail 2")
     );
   });
+
+  it("retries and logs error when response is missing required field", async () => {
+    const invalidData = { ...validStepData };
+    delete invalidData.taskId;
+
+    mockGenerateContent
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } })
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } });
+
+    await expect(processWithGemini("prompt", "ctx")).rejects.toThrow(
+      "Errore di connessione al modello."
+    );
+    expect(fs.default.appendFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("logs/gemini-errors.log"),
+      expect.stringContaining("taskId")
+    );
+  });
+
+  it("retries and logs error when inputs is empty array", async () => {
+    const invalidData = { ...validStepData, inputs: [] };
+
+    mockGenerateContent
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } })
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } });
+
+    await expect(processWithGemini("prompt", "ctx")).rejects.toThrow(
+      "Errore di connessione al modello."
+    );
+    expect(fs.default.appendFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("logs/gemini-errors.log"),
+      expect.stringContaining("inputs")
+    );
+  });
 });
