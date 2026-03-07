@@ -176,7 +176,22 @@ Example of a valid single-step workflow:
   User Input: "Turn on dark mode"
   This task has only one decision to make (confirm the action).
   Correct response: stepNumber=1, isFinalStep=true, estimatedRemainingSteps=0
-  The workflow ends after this single confirmation step — no further steps are needed.`;
+  The workflow ends after this single confirmation step — no further steps are needed.
+
+State summary rules (CRITICAL - follow strictly):
+- The stateSummary field MUST describe TWO things clearly:
+  1. What decisions or information have already been collected in previous steps.
+  2. What the CURRENT step is trying to resolve or collect.
+- Keep the summary concise and readable — 1 to 3 sentences maximum. Avoid vague or generic language.
+- On step 1, briefly state the goal and what this first step will collect.
+- On subsequent steps, always mention what was confirmed so far before describing the current step.
+
+Example of a WEAK unclear summary (do NOT do this):
+  stateSummary: "Collecting information." — this is vague, gives no context, and does not describe progress or purpose.
+
+Example of an IMPROVED summary that describes previous decisions (do this instead):
+  Context: Step 3 of a flight booking workflow, user has confirmed destination (Rome) and travel dates (10–17 June).
+  Good stateSummary: "Destination (Rome) and dates (10–17 June) confirmed. This step collects seating preference and meal options."`;
 
 
 const REQUIRED_STEP_FIELDS = [

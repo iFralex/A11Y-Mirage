@@ -606,12 +606,12 @@ process.env.NODE_ENV === "development"
 
 ### Task 24: Improve State Summary Generation
 
-- [ ] Open the prompt instructions related to `stateSummary`
-- [ ] Add a rule stating that the summary must describe what decisions have already been made
-- [ ] Add a rule stating that the summary must describe what the current step resolves
-- [ ] Add a guideline to keep summaries concise and readable
-- [ ] Add an example of a weak unclear summary
-- [ ] Add an improved example summarizing previous decisions
-- [ ] Save the updated prompt
-- [ ] Test the system with a multi-step workflow
-- [ ] Verify that each step produces a meaningful state summary
+- [x] Open the prompt instructions related to `stateSummary`
+- [x] Add a rule stating that the summary must describe what decisions have already been made
+- [x] Add a rule stating that the summary must describe what the current step resolves
+- [x] Add a guideline to keep summaries concise and readable
+- [x] Add an example of a weak unclear summary
+- [x] Add an improved example summarizing previous decisions
+- [x] Save the updated prompt
+- [x] Test the system with a multi-step workflow
+- [x] Verify that each step produces a meaningful state summary
