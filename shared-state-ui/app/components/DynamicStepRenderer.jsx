@@ -58,7 +58,7 @@ function renderSingleInput(input, responses, updateResponses, clearError) {
             value={value}
             placeholder={placeholder || ''}
             required={!!required}
-            onChange={(e) => updateValue(e.target.value)}
+            onChange={(e) => updateValue(Number(e.target.value))}
           />
         </div>
       );

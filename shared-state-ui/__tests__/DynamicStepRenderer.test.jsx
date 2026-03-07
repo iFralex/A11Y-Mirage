@@ -56,7 +56,7 @@ describe('DynamicStepRenderer', () => {
       const onChange = vi.fn();
       render(<DynamicStepRenderer inputs={inputs} onResponsesChange={onChange} />);
       fireEvent.change(screen.getByLabelText('Your age'), { target: { value: '30' } });
-      expect(onChange).toHaveBeenCalledWith({ age: '30' });
+      expect(onChange).toHaveBeenCalledWith({ age: 30 });
     });
   });
 
@@ -241,7 +241,7 @@ describe('DynamicStepRenderer', () => {
       fireEvent.change(screen.getByLabelText('Age'), { target: { value: '25' } });
       const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1][0];
       expect(lastCall.name).toBe('Alice');
-      expect(lastCall.age).toBe('25');
+      expect(lastCall.age).toBe(25);
     });
   });
 

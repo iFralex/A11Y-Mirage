@@ -4,6 +4,7 @@ import { useState } from "react";
 import ContextSetup from "@/app/components/ContextSetup";
 import WorkflowStepContainer from "@/app/components/WorkflowStepContainer";
 import WorkflowDebugConsole from "@/app/components/WorkflowDebugConsole";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSharedStateStore } from "@/app/store/useSharedState";
 import { processWithGemini } from "@/app/actions/processUserInput";
 
@@ -11,6 +12,7 @@ export default function Main() {
   const systemContext = useSharedStateStore((state) => state.systemContext);
   const workflow = useSharedStateStore((state) => state.workflow);
   const isLoading = useSharedStateStore((state) => state.isLoading);
+  const error = useSharedStateStore((state) => state.error);
   const addStep = useSharedStateStore((state) => state.addStep);
   const setLoading = useSharedStateStore((state) => state.setLoading);
   const setError = useSharedStateStore((state) => state.setError);
@@ -61,6 +63,12 @@ export default function Main() {
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
           Shared State AI
         </h1>
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label
             htmlFor="user-prompt"

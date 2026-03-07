@@ -62,9 +62,9 @@ export default function WorkflowStepContainer() {
     const responses = stepRendererRef.current.getResponses();
     updateStepResponse(currentStep.stepId, responses);
 
-    const updatedSteps = workflow.steps.map((s) =>
-      s.stepId === currentStep.stepId ? { ...s, response: responses } : s
-    );
+    const updatedSteps = workflow.steps
+      .slice(0, currentStepIndex + 1)
+      .map((s) => s.stepId === currentStep.stepId ? { ...s, response: responses } : s);
     const updatedWorkflow = { ...workflow, steps: updatedSteps };
 
     const userInput = JSON.stringify(responses);
@@ -92,6 +92,7 @@ export default function WorkflowStepContainer() {
   };
 
   const handleComplete = () => {
+    console.log("Workflow completed");
     resetWorkflow();
     setSystemContext("");
   };

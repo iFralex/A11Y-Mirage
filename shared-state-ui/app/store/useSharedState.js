@@ -23,15 +23,18 @@ export const useSharedStateStore = create(
       setError: (string) => set({ error: string }),
       clearError: () => set({ error: null }),
 
-      addStep: (step) => set((state) => ({
-        workflow: {
-          ...state.workflow,
-          taskId: step.taskId ?? state.workflow.taskId,
-          taskName: step.taskName ?? state.workflow.taskName,
-          steps: [...state.workflow.steps, step],
-        },
-        currentStepIndex: state.workflow.steps.length,
-      })),
+      addStep: (step) => set((state) => {
+        const truncated = state.workflow.steps.slice(0, state.currentStepIndex + 1);
+        return {
+          workflow: {
+            ...state.workflow,
+            taskId: step.taskId ?? state.workflow.taskId,
+            taskName: step.taskName ?? state.workflow.taskName,
+            steps: [...truncated, step],
+          },
+          currentStepIndex: truncated.length,
+        };
+      }),
 
       updateStepResponse: (stepId, response) => set((state) => ({
         workflow: {
