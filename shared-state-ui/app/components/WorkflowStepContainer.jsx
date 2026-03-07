@@ -18,6 +18,7 @@ import {
 import { processWithGemini } from '@/app/actions/processUserInput';
 import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
 import { generateSemanticSummary, speakText, cancelSpeech } from '@/app/utils/semanticSpeech';
+import AccessibilityReport from '@/app/components/AccessibilityReport';
 
 function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
   return (
@@ -280,11 +281,14 @@ export default function WorkflowStepContainer() {
           )}
 
           {currentStep.isFinalStep && (
-            <FinalSummaryContainer
-              summary={currentStep.finalSummary}
-              actionLabel={currentStep.finalActionLabel}
-              onComplete={handleComplete}
-            />
+            <>
+              <AccessibilityReport />
+              <FinalSummaryContainer
+                summary={currentStep.finalSummary}
+                actionLabel={currentStep.finalActionLabel}
+                onComplete={handleComplete}
+              />
+            </>
           )}
 
           <div className="flex gap-2 mt-2 flex-wrap">
