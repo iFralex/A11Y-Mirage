@@ -1,6 +1,29 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export const defaultUserProfile = {
+  sensory: {
+    vision: 'default',
+    color: 'default',
+  },
+  cognitive: {
+    maxInputsPerStep: null,
+    requiresDecisionSupport: false,
+    safeMode: false,
+  },
+  interaction: {
+    preferredModality: 'visual',
+    progressiveDisclosure: false,
+  },
+}
+
+export const defaultTelemetry = {
+  focusSwitchesCurrentStep: 0,
+  timeOnCurrentStep: 0,
+  errorCount: 0,
+  localCognitiveLoadScore: 0,
+}
+
 export const useSharedStateStore = create(
   persist(
     (set, get) => ({
@@ -9,6 +32,9 @@ export const useSharedStateStore = create(
       isLoading: false,
       error: null,
 
+      userProfile: { ...defaultUserProfile, sensory: { ...defaultUserProfile.sensory }, cognitive: { ...defaultUserProfile.cognitive }, interaction: { ...defaultUserProfile.interaction } },
+      telemetry: { ...defaultTelemetry },
+
       workflow: {
         taskId: null,
         taskName: "",
@@ -16,6 +42,21 @@ export const useSharedStateStore = create(
       },
       currentStepIndex: 0,
       estimatedRemainingSteps: null,
+
+      setUserProfile: (profile) => set({ userProfile: profile }),
+      updateUserProfile: (updates) => set((state) => ({
+        userProfile: {
+          ...state.userProfile,
+          ...updates,
+          sensory: updates.sensory ? { ...state.userProfile.sensory, ...updates.sensory } : state.userProfile.sensory,
+          cognitive: updates.cognitive ? { ...state.userProfile.cognitive, ...updates.cognitive } : state.userProfile.cognitive,
+          interaction: updates.interaction ? { ...state.userProfile.interaction, ...updates.interaction } : state.userProfile.interaction,
+        },
+      })),
+      updateTelemetry: (metrics) => set((state) => ({
+        telemetry: { ...state.telemetry, ...metrics },
+      })),
+      resetTelemetryForNewStep: () => set({ telemetry: { ...defaultTelemetry } }),
 
       setSystemContext: (text) => set({ systemContext: text }),
       updateTaskData: (data) => set({ taskData: data }),
@@ -65,6 +106,7 @@ export const useSharedStateStore = create(
         workflow: state.workflow,
         currentStepIndex: state.currentStepIndex,
         estimatedRemainingSteps: state.estimatedRemainingSteps,
+        userProfile: state.userProfile,
       }),
     }
   )
