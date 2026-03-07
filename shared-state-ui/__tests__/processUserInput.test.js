@@ -353,4 +353,132 @@ describe("processWithGemini", () => {
     expect(result.finalActionLabel).toBe("Confirm");
     expect(result.finalSummary).toBe("Enable dark mode on your account.");
   });
+
+  it("injects userProfile into the prompt when accessibilityContext is provided", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const userProfile = {
+      sensory: { vision: "low_vision", color: "high_contrast" },
+      cognitive: { maxInputsPerStep: 2, requiresDecisionSupport: true, safeMode: false },
+      interaction: { preferredModality: "voice", progressiveDisclosure: true },
+    };
+
+    await processWithGemini("plan a trip", "ctx", null, { userProfile });
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Adaptive Context");
+    expect(callArg).toContain("User Profile:");
+    expect(callArg).toContain("low_vision");
+    expect(callArg).toContain("high_contrast");
+    expect(callArg).toContain("requiresDecisionSupport");
+  });
+
+  it("injects cognitive load score into the prompt when telemetry is provided", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const telemetry = {
+      focusSwitchesCurrentStep: 5,
+      timeOnCurrentStep: 120,
+      errorCount: 1,
+      localCognitiveLoadScore: 8.5,
+    };
+
+    await processWithGemini("plan a trip", "ctx", null, { telemetry });
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Adaptive Context");
+    expect(callArg).toContain("User's Cognitive Load Score on last step: 8.5/10");
+  });
+
+  it("injects both userProfile and telemetry when both are provided", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const userProfile = { sensory: { vision: "screen_reader" } };
+    const telemetry = { localCognitiveLoadScore: 3.2 };
+
+    await processWithGemini("task", "ctx", null, { userProfile, telemetry });
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("User Profile:");
+    expect(callArg).toContain("screen_reader");
+    expect(callArg).toContain("User's Cognitive Load Score on last step: 3.2/10");
+  });
+
+  it("does not inject user profile or load score when accessibilityContext is empty", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("task", "ctx", null, {});
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).not.toContain("User Profile:");
+    expect(callArg).not.toContain("Cognitive Load Score on last step");
+  });
+
+  it("does not inject user profile or load score when accessibilityContext is omitted", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("task", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).not.toContain("User Profile:");
+    expect(callArg).not.toContain("Cognitive Load Score on last step");
+  });
+
+  it("prompt includes adaptive accessibility rules with cognitive load threshold instruction", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("task", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Adaptive accessibility rules");
+    expect(callArg).toContain("localCognitiveLoadScore > 6");
+    expect(callArg).toContain('uiDensity to "relaxed"');
+    expect(callArg).toContain("recommendedOptionId");
+  });
+
+  it("correctly parses response with new adaptive fields", async () => {
+    const adaptiveStepData = {
+      ...validStepData,
+      recommendedOptionId: "opt_1",
+      decisionExplanation: "This option is best for your needs.",
+      adaptationReason: "I split this step because cognitive load was high.",
+      uiDensity: "relaxed",
+    };
+
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(adaptiveStepData) },
+    });
+
+    const result = await processWithGemini("task", "ctx");
+
+    expect(result.recommendedOptionId).toBe("opt_1");
+    expect(result.decisionExplanation).toBe("This option is best for your needs.");
+    expect(result.adaptationReason).toBe("I split this step because cognitive load was high.");
+    expect(result.uiDensity).toBe("relaxed");
+  });
+
+  it("accepts response without adaptive fields (they are optional)", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const result = await processWithGemini("task", "ctx");
+
+    expect(result.recommendedOptionId).toBeUndefined();
+    expect(result.decisionExplanation).toBeUndefined();
+    expect(result.adaptationReason).toBeUndefined();
+    expect(result.uiDensity).toBeUndefined();
+  });
 });

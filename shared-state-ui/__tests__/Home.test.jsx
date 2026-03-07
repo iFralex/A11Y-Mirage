@@ -78,7 +78,8 @@ describe('Home page', () => {
       expect(processWithGemini).toHaveBeenCalledWith(
         'my prompt',
         'test context',
-        { taskId: null, taskName: '', steps: [] }
+        { taskId: null, taskName: '', steps: [] },
+        expect.objectContaining({ userProfile: expect.anything(), telemetry: expect.anything() })
       );
     });
   });

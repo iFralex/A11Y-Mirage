@@ -41,6 +41,8 @@ export default function WorkflowStepContainer() {
   const clearError = useSharedStateStore((state) => state.clearError);
   const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
   const setUserProfile = useSharedStateStore((state) => state.setUserProfile);
+  const userProfile = useSharedStateStore((state) => state.userProfile);
+  const telemetry = useSharedStateStore((state) => state.telemetry);
 
   const stepRendererRef = useRef(null);
   const titleRef = useRef(null);
@@ -74,7 +76,7 @@ export default function WorkflowStepContainer() {
     clearError();
     setLoading(true);
     try {
-      const nextStep = await processWithGemini(userInput, systemContext, updatedWorkflow);
+      const nextStep = await processWithGemini(userInput, systemContext, updatedWorkflow, { userProfile, telemetry });
       addStep(nextStep);
       setEstimatedSteps(nextStep.estimatedRemainingSteps);
     } catch (err) {

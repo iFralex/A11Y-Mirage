@@ -288,7 +288,8 @@ describe('WorkflowStepContainer', () => {
     expect(processWithGemini).toHaveBeenCalledWith(
       JSON.stringify({ destination: 'Rome' }),
       'Plan a trip',
-      expect.objectContaining({ steps: expect.any(Array) })
+      expect.objectContaining({ steps: expect.any(Array) }),
+      expect.objectContaining({ userProfile: expect.anything(), telemetry: expect.anything() })
     );
   });
 

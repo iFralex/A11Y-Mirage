@@ -54,6 +54,13 @@ const responseSchema = {
     isFinalStep: { type: SchemaType.BOOLEAN },
     finalActionLabel: { type: SchemaType.STRING },
     finalSummary: { type: SchemaType.STRING },
+    recommendedOptionId: { type: SchemaType.STRING },
+    decisionExplanation: { type: SchemaType.STRING },
+    adaptationReason: { type: SchemaType.STRING },
+    uiDensity: {
+      type: SchemaType.STRING,
+      enum: ["compact", "standard", "relaxed"],
+    },
   },
   required: [
     "taskId",
@@ -191,7 +198,17 @@ Example of a WEAK unclear summary (do NOT do this):
 
 Example of an IMPROVED summary that describes previous decisions (do this instead):
   Context: Step 3 of a flight booking workflow, user has confirmed destination (Rome) and travel dates (10–17 June).
-  Good stateSummary: "Destination (Rome) and dates (10–17 June) confirmed. This step collects seating preference and meal options."`;
+  Good stateSummary: "Destination (Rome) and dates (10–17 June) confirmed. This step collects seating preference and meal options."
+
+Adaptive accessibility rules (CRITICAL - follow strictly):
+- The Adaptive Context section (when provided) contains the user's accessibility profile and real-time cognitive load score.
+- Always use this data to tailor the step structure, vocabulary, and density to the user's needs.
+- If localCognitiveLoadScore > 6, you MUST: set uiDensity to "relaxed", provide a recommendedOptionId pointing to the simplest or most common option, and limit inputs to at most 1 per step.
+- If localCognitiveLoadScore <= 6, set uiDensity to "standard" unless the user profile explicitly warrants "compact".
+- When requiresDecisionSupport is true, always populate decisionExplanation with a B1-level (simple, clear) explanation of why this step matters and what the recommended choice is.
+- When you change the step structure due to adaptive conditions (e.g. splitting a step, adding guidance), set adaptationReason to explain your decision (e.g. "I split this into two steps because your cognitive load score was high.").
+- If vision is "screen_reader", use simple, linear questions with no implicit visual layout cues in the labels.
+- If preferredModality is "voice", keep labels short and conversational — they will be read aloud.`;
 
 
 const REQUIRED_STEP_FIELDS = [
@@ -228,7 +245,7 @@ function validateStepResponse(data) {
   }
 }
 
-export async function processWithGemini(userInput, systemContext, workflowState) {
+export async function processWithGemini(userInput, systemContext, workflowState, accessibilityContext = {}) {
   let prompt = WORKFLOW_INSTRUCTIONS + "\n\n";
 
   if (systemContext) {
@@ -240,6 +257,18 @@ export async function processWithGemini(userInput, systemContext, workflowState)
     if (history) {
       prompt += "Workflow History:\n" + history + "\n\n";
     }
+  }
+
+  const { userProfile, telemetry } = accessibilityContext;
+  if (userProfile || telemetry) {
+    prompt += "Adaptive Context:\n";
+    if (userProfile) {
+      prompt += "User Profile: " + JSON.stringify(userProfile) + "\n";
+    }
+    if (telemetry) {
+      prompt += "User's Cognitive Load Score on last step: " + telemetry.localCognitiveLoadScore + "/10\n";
+    }
+    prompt += "\n";
   }
 
   prompt += "User Input: " + userInput;

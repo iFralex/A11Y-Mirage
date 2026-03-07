@@ -19,6 +19,8 @@ export default function Main() {
   const setError = useSharedStateStore((state) => state.setError);
   const clearError = useSharedStateStore((state) => state.clearError);
   const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
+  const userProfile = useSharedStateStore((state) => state.userProfile);
+  const telemetry = useSharedStateStore((state) => state.telemetry);
 
   const [userPrompt, setUserPrompt] = useState("");
 
@@ -34,7 +36,7 @@ export default function Main() {
     setLoading(true);
     try {
       const emptyWorkflow = { taskId: null, taskName: "", steps: [] };
-      const firstStep = await processWithGemini(userPrompt, systemContext, emptyWorkflow);
+      const firstStep = await processWithGemini(userPrompt, systemContext, emptyWorkflow, { userProfile, telemetry });
       addStep(firstStep);
       setEstimatedSteps(firstStep.estimatedRemainingSteps);
     } catch (err) {
