@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -194,11 +194,12 @@ function renderSingleInput(input, responses, updateResponses, clearError) {
 }
 
 const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
-  { inputs = [], initialResponses = {}, onResponsesChange },
+  { inputs = [], initialResponses = {}, onResponsesChange, requiresDecisionSupport = false },
   ref
 ) {
   const [stepResponses, setStepResponses] = useState(initialResponses);
   const [errors, setErrors] = useState({});
+  const [activeInputId, setActiveInputId] = useState(null);
 
   useImperativeHandle(ref, () => ({
     validate() {
@@ -227,20 +228,47 @@ const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
     });
   };
 
+  const handleInputFocus = useCallback((id) => {
+    setActiveInputId(id);
+  }, []);
+
+  const handleInputBlur = useCallback((e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setActiveInputId(null);
+    }
+  }, []);
+
   if (!inputs.length) return null;
 
   return (
     <div className="flex flex-col gap-4">
-      {inputs.map((input) => (
-        <div key={input.id}>
-          {renderSingleInput(input, stepResponses, updateResponses, clearError)}
-          {errors[input.id] && (
-            <p role="alert" className="text-red-600 text-sm mt-1">
-              {errors[input.id]}
-            </p>
-          )}
-        </div>
-      ))}
+      {inputs.map((input) => {
+        const isDimmed =
+          requiresDecisionSupport &&
+          activeInputId !== null &&
+          activeInputId !== input.id;
+
+        const tunnelClass = isDimmed
+          ? 'opacity-20 pointer-events-none transition-opacity'
+          : 'transition-opacity';
+
+        return (
+          <div
+            key={input.id}
+            data-input-tunnel={input.id}
+            className={tunnelClass}
+            onFocus={() => handleInputFocus(input.id)}
+            onBlur={handleInputBlur}
+          >
+            {renderSingleInput(input, stepResponses, updateResponses, clearError)}
+            {errors[input.id] && (
+              <p role="alert" className="text-red-600 text-sm mt-1">
+                {errors[input.id]}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 });

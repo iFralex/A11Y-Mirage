@@ -307,4 +307,65 @@ describe('DynamicStepRenderer', () => {
       expect(result).toBe(true);
     });
   });
+
+  describe('Focus Tunnel', () => {
+    const twoInputs = [
+      { id: 'name', type: 'text_input', label: 'Name' },
+      { id: 'age', type: 'number_input', label: 'Age' },
+    ];
+
+    const getTunnelWrapper = (container, inputId) =>
+      container.querySelector(`[data-input-tunnel="${inputId}"]`);
+
+    it('does not apply opacity-20 when requiresDecisionSupport is false', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={false} />);
+      const nameWrapper = getTunnelWrapper(container, 'name');
+      expect(nameWrapper?.className).not.toContain('opacity-20');
+    });
+
+    it('does not dim inputs before any focus when requiresDecisionSupport is true', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={true} />);
+      const ageWrapper = getTunnelWrapper(container, 'age');
+      expect(ageWrapper?.className).not.toContain('opacity-20');
+    });
+
+    it('dims inactive inputs when requiresDecisionSupport is true and an input is focused', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={true} />);
+      const nameInput = screen.getByLabelText('Name');
+      fireEvent.focus(nameInput);
+
+      const ageWrapper = getTunnelWrapper(container, 'age');
+      expect(ageWrapper?.className).toContain('opacity-20');
+      expect(ageWrapper?.className).toContain('pointer-events-none');
+    });
+
+    it('active input wrapper is not dimmed when requiresDecisionSupport is true', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={true} />);
+      const nameInput = screen.getByLabelText('Name');
+      fireEvent.focus(nameInput);
+
+      const nameWrapper = getTunnelWrapper(container, 'name');
+      expect(nameWrapper?.className).not.toContain('opacity-20');
+    });
+
+    it('clears dimming when focus leaves all inputs', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={true} />);
+      const nameInput = screen.getByLabelText('Name');
+      fireEvent.focus(nameInput);
+
+      // Blur without relatedTarget (focus leaves the component entirely)
+      fireEvent.blur(nameInput, { relatedTarget: null });
+
+      const ageWrapper = getTunnelWrapper(container, 'age');
+      expect(ageWrapper?.className).not.toContain('opacity-20');
+    });
+
+    it('does not have pointer-events-none on active input', () => {
+      const { container } = render(<DynamicStepRenderer inputs={twoInputs} requiresDecisionSupport={true} />);
+      const nameInput = screen.getByLabelText('Name');
+      fireEvent.focus(nameInput);
+      const nameWrapper = getTunnelWrapper(container, 'name');
+      expect(nameWrapper?.className).not.toContain('pointer-events-none');
+    });
+  });
 });

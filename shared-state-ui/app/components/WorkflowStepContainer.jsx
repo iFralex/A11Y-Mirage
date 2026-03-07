@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { useSharedStateStore } from '@/app/store/useSharedState';
 import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
+import AdaptiveLayoutProvider from '@/app/components/AdaptiveLayoutProvider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { processWithGemini } from '@/app/actions/processUserInput';
@@ -174,12 +175,15 @@ export default function WorkflowStepContainer() {
           <p className="text-muted-foreground text-sm">{currentStep.stateSummary}</p>
 
           {!currentStep.isFinalStep && (
-            <DynamicStepRenderer
-              ref={stepRendererRef}
-              key={currentStep.stepId}
-              inputs={currentStep.inputs || []}
-              initialResponses={currentStep.response || {}}
-            />
+            <AdaptiveLayoutProvider uiDensity={currentStep.uiDensity}>
+              <DynamicStepRenderer
+                ref={stepRendererRef}
+                key={currentStep.stepId}
+                inputs={currentStep.inputs || []}
+                initialResponses={currentStep.response || {}}
+                requiresDecisionSupport={userProfile.cognitive.requiresDecisionSupport}
+              />
+            </AdaptiveLayoutProvider>
           )}
 
           {currentStep.isFinalStep && (
