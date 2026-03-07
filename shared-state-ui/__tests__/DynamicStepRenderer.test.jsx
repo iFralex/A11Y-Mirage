@@ -142,11 +142,11 @@ describe('DynamicStepRenderer', () => {
       expect(screen.getByRole('checkbox')).toBeInTheDocument();
     });
 
-    it('calls onResponsesChange when toggled', () => {
+    it('calls onResponsesChange with true when checked', () => {
       const onChange = vi.fn();
       render(<DynamicStepRenderer inputs={inputs} onResponsesChange={onChange} />);
       fireEvent.click(screen.getByRole('checkbox'));
-      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith({ agree: true });
     });
   });
 
@@ -176,6 +176,22 @@ describe('DynamicStepRenderer', () => {
       const input = screen.getByLabelText('Upload resume');
       expect(input).toBeInTheDocument();
       expect(input).toHaveAttribute('type', 'file');
+    });
+
+    it('calls onResponsesChange with filename when a file is selected', () => {
+      const onChange = vi.fn();
+      render(<DynamicStepRenderer inputs={inputs} onResponsesChange={onChange} />);
+      const fileInput = screen.getByLabelText('Upload resume');
+      fireEvent.change(fileInput, { target: { files: [{ name: 'cv.pdf' }] } });
+      expect(onChange).toHaveBeenCalledWith({ resume: 'cv.pdf' });
+    });
+
+    it('calls onResponsesChange with empty string when no file is selected', () => {
+      const onChange = vi.fn();
+      render(<DynamicStepRenderer inputs={inputs} onResponsesChange={onChange} />);
+      const fileInput = screen.getByLabelText('Upload resume');
+      fireEvent.change(fileInput, { target: { files: [] } });
+      expect(onChange).toHaveBeenCalledWith({ resume: '' });
     });
   });
 

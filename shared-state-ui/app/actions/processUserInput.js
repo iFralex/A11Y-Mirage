@@ -88,7 +88,7 @@ const WORKFLOW_INSTRUCTIONS = `You are an AI workflow engine. Your role is to gu
 For each interaction, generate the NEXT SINGLE STEP of the workflow as a structured JSON response.
 
 Rules:
-- taskType must always be "generic"
+- taskType must be "generic" for normal workflows; use "accessibility_onboarding" only when the System Context explicitly requests an accessibility profile onboarding flow
 - taskName should describe the overall goal/task
 - stepId should be a unique identifier (e.g. "step_1", "step_2")
 - stepNumber starts at 1 and increments with each step
@@ -296,7 +296,11 @@ export async function processWithGemini(userInput, systemContext, workflowState,
   }
   fs.appendFileSync(
     path.join(process.cwd(), "logs", "gemini-errors.log"),
-    JSON.stringify({ error: lastError?.message ?? String(lastError), userInput, systemContext }) + "\n"
+    JSON.stringify({
+      error: lastError?.message ?? String(lastError),
+      userInputLength: userInput?.length ?? 0,
+      systemContextLength: systemContext?.length ?? 0,
+    }) + "\n"
   );
   throw new Error("Errore di connessione al modello.");
 }

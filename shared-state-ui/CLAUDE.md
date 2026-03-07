@@ -22,9 +22,16 @@ PLAYWRIGHT_BROWSER_AVAILABLE=true npx playwright test  # force-run E2E
 
 ## State management (Zustand + localStorage)
 
-The Zustand store (`app/store/useSharedState.js`) uses `persist` middleware with the key `'shared-state-storage'`. The following fields are persisted (via `partialize`): `systemContext`, `taskData`, `workflow`, `currentStepIndex`, `estimatedRemainingSteps`. The fields `isLoading` and `error` are excluded to avoid stuck states across page reloads.
+The Zustand store (`app/store/useSharedState.js`) uses `persist` middleware with the key `'shared-state-storage'`. The following fields are persisted (via `partialize`): `systemContext`, `taskData`, `workflow`, `currentStepIndex`, `estimatedRemainingSteps`, `userProfile`. The fields `isLoading`, `error`, and `telemetry` are excluded to avoid stuck states across page reloads.
 
 The E2E tests seed this key in localStorage before page load using `page.addInitScript`. Any future store shape changes must update both the `partialize` config and the E2E seed objects.
+
+The store is exposed on `window.__sharedStore` in browser environments for E2E test instrumentation. Use this to inject non-persisted state (e.g. `telemetry`) that cannot be seeded via localStorage:
+```js
+await page.evaluate(() => {
+  window.__sharedStore.setState({ telemetry: { localCognitiveLoadScore: 9 } });
+});
+```
 
 ## Playwright environment detection
 
@@ -38,6 +45,8 @@ The E2E tests seed this key in localStorage before page load using `page.addInit
 
 `jsconfig.json` maps `@/*` to `./*` (the `shared-state-ui/` project root). shadcn/ui components live at `components/ui/` (not `app/components/`). Application components live at `app/components/`.
 
+Currently installed shadcn/ui components (under `components/ui/`): `alert`, `badge`, `button`, `collapsible`, `dialog`, `label`, `select`, `slider`, `switch`.
+
 ## Workflow architecture
 
 `app/page.jsx` is a thin async Server Component that renders `app/main.jsx`. `main.jsx` is a Client Component (`"use client"`) that drives the top-level flow:
@@ -46,21 +55,30 @@ The E2E tests seed this key in localStorage before page load using `page.addInit
 - Workflow steps present → render `WorkflowStepContainer`
 - Always renders `WorkflowDebugConsole` (visible only in `NODE_ENV=development`)
 
-`WorkflowStepContainer` owns step submission: reads the current step from the store, calls `DynamicStepRenderer` via an imperative ref to validate and collect responses, then calls `processWithGemini(userInput, systemContext, updatedWorkflow)` to obtain the next step.
+`WorkflowStepContainer` owns step submission: reads the current step from the store, calls `DynamicStepRenderer` via an imperative ref to validate and collect responses, then calls `processWithGemini(userInput, systemContext, updatedWorkflow, { userProfile, telemetry })` to obtain the next step. It also calls `useStepTelemetry(stepRendererRef)` to drive the real-time cognitive load scoring; `resetTelemetry()` is called on each step submission.
 
 `DynamicStepRenderer` uses `forwardRef` + `useImperativeHandle` to expose two methods:
 - `validate()` — runs required-field validation, sets inline errors, returns boolean
 - `getResponses()` — returns the current `{ inputId: value }` map
 
-`app/utils/workflowHelpers.js` exports pure functions used when building the LLM prompt:
+`app/utils/workflowHelpers.js` exports pure functions:
 - `buildConversationMemory(steps)` — formats step history (uses `stateSummary` field, not `questionSummary`)
+- `extractStepResults(steps)` — returns `[{ stepId, stepNumber, response }]` for all steps with a response
+- `mapResponsesToProfile(steps)` — maps accessibility onboarding responses to the `userProfile` schema. The LLM must use these canonical input IDs: `sensory_vision`, `sensory_color`, `cognitive_maxInputsPerStep`, `cognitive_requiresDecisionSupport`, `cognitive_safeMode`, `interaction_preferredModality`, `interaction_progressiveDisclosure`.
 
-The Server Action `processWithGemini` signature is `(userInput, systemContext, workflowState)`. The E2E mock intercepts POST requests with the `next-action` header; the mock payload must include all three arguments in the React Flight format.
+`app/utils/semanticSpeech.js` exports speech-synthesis helpers:
+- `generateSemanticSummary(stepData)` — builds a spoken string from step data
+- `speakText(text)` — cancels any current utterance then speaks via `window.speechSynthesis`
+- `cancelSpeech()` — immediately cancels any current utterance
+
+`app/hooks/useStepTelemetry.js` — custom hook that tracks time, focus switches, and error count per step, computing a `localCognitiveLoadScore` (0–10) every 2 seconds via `setInterval`. Scoring formula: `(timeInSeconds * 0.1) + (focusSwitches * 0.5) + (errorCount * 2)`, capped at 10. Returns `{ resetTelemetry }` — call this on step submission to zero the counters.
+
+The Server Action `processWithGemini` signature is `(userInput, systemContext, workflowState, accessibilityContext = {})`. `accessibilityContext` is `{ userProfile, telemetry }` — both optional. The E2E mock intercepts POST requests with the `next-action` header; the mock payload must include all four arguments in the React Flight format.
 
 The LLM response schema requires `isFinalStep` (boolean). A final step (`isFinalStep: true`) may have an empty `inputs` array — validation does not reject this. The `finalActionLabel` field is only valid when `isFinalStep` is true.
 
 ## Key conventions
 
 - Component tests use `@testing-library/react` + `vitest`. Mock Zustand state with `useSharedStateStore.setState({...})` in `beforeEach`.
-- Always reset the full store state in `beforeEach` to prevent cross-test leakage: `systemContext`, `taskData`, `isLoading`, `error`, `workflow` (to `{ taskId: null, taskName: "", steps: [] }`), `currentStepIndex` (to `0`), and `estimatedRemainingSteps` (to `null`).
+- Always reset the full store state in `beforeEach` to prevent cross-test leakage: `systemContext`, `taskData`, `isLoading`, `error`, `workflow` (to `{ taskId: null, taskName: "", steps: [] }`), `currentStepIndex` (to `0`), `estimatedRemainingSteps` (to `null`), `userProfile` (to `defaultUserProfile` from the store), and `telemetry` (to `defaultTelemetry` from the store). Both `defaultUserProfile` and `defaultTelemetry` are exported from `app/store/useSharedState.js`.
 - FileReader stubs (`vi.stubGlobal`) must be cleaned up in `afterEach(() => vi.unstubAllGlobals())`.

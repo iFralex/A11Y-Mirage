@@ -45,6 +45,12 @@ describe('AccessibilityReport', () => {
   beforeEach(() => {
     useSharedStateStore.setState({
       workflow: { taskId: null, taskName: '', steps: [] },
+      userProfile: {
+        sensory: { vision: 'default', color: 'default' },
+        cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+        interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+      },
+      telemetry: { focusSwitchesCurrentStep: 0, timeOnCurrentStep: 0, errorCount: 0, localCognitiveLoadScore: 0 },
     });
     vi.clearAllMocks();
   });
@@ -118,14 +124,13 @@ describe('AccessibilityReport', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('calls setUserProfile when save button is clicked', () => {
+  it('preserves userProfile in store after clicking save button', () => {
     setupStore({ safeMode: true });
     render(<AccessibilityReport />);
-    const setUserProfile = vi.fn();
-    useSharedStateStore.setState({ setUserProfile });
+    const profileBefore = useSharedStateStore.getState().userProfile;
     const btn = screen.getByRole('button', { name: /save these learned adaptations/i });
     fireEvent.click(btn);
-    // After click, saved state should be true
+    expect(useSharedStateStore.getState().userProfile).toEqual(profileBefore);
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 

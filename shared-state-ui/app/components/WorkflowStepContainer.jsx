@@ -13,11 +13,11 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { processWithGemini } from '@/app/actions/processUserInput';
 import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
 import { generateSemanticSummary, speakText, cancelSpeech } from '@/app/utils/semanticSpeech';
+import { useStepTelemetry } from '@/app/hooks/useStepTelemetry';
 import AccessibilityReport from '@/app/components/AccessibilityReport';
 
 function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
@@ -58,7 +58,10 @@ export default function WorkflowStepContainer() {
   const telemetry = useSharedStateStore((state) => state.telemetry);
 
   const stepRendererRef = useRef(null);
+  const stepContainerRef = useRef(null);
   const titleRef = useRef(null);
+
+  const { resetTelemetry } = useStepTelemetry(stepContainerRef);
 
   const currentStep = workflow.steps[currentStepIndex] ?? null;
 
@@ -127,6 +130,7 @@ export default function WorkflowStepContainer() {
   };
 
   const submitResponses = async (responses) => {
+    resetTelemetry();
     updateStepResponse(currentStep.stepId, responses);
 
     const updatedSteps = workflow.steps
@@ -216,7 +220,7 @@ export default function WorkflowStepContainer() {
         </Alert>
       )}
 
-      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+      <Dialog open={reviewDialogOpen} onOpenChange={(open) => { setReviewDialogOpen(open); if (!open) setPendingResponses(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Review Your Choices</DialogTitle>
@@ -246,7 +250,7 @@ export default function WorkflowStepContainer() {
       </Dialog>
 
       {currentStep && (
-        <div className="rounded-xl border bg-card p-6 shadow-sm flex flex-col gap-4">
+        <div ref={stepContainerRef} className="rounded-xl border bg-card p-6 shadow-sm flex flex-col gap-4">
           <h2
             id="step-title"
             tabIndex="-1"
@@ -270,12 +274,17 @@ export default function WorkflowStepContainer() {
               <DynamicStepRenderer
                 ref={stepRendererRef}
                 key={currentStep.stepId}
-                inputs={currentStep.inputs || []}
+                inputs={
+                  userProfile.cognitive.maxInputsPerStep != null
+                    ? (currentStep.inputs || []).slice(0, userProfile.cognitive.maxInputsPerStep)
+                    : (currentStep.inputs || [])
+                }
                 initialResponses={currentStep.response || {}}
                 requiresDecisionSupport={userProfile.cognitive.requiresDecisionSupport}
                 isScreenReader={userProfile.sensory.vision === 'screen_reader'}
                 decisionExplanation={currentStep.decisionExplanation || ''}
                 recommendedOptionId={currentStep.recommendedOptionId || ''}
+                progressiveDisclosure={userProfile.interaction.progressiveDisclosure}
               />
             </AdaptiveLayoutProvider>
           )}

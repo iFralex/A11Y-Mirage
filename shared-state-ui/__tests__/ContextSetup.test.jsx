@@ -16,6 +16,15 @@ describe('ContextSetup', () => {
       taskData: null,
       isLoading: false,
       error: null,
+      workflow: { taskId: null, taskName: '', steps: [] },
+      currentStepIndex: 0,
+      estimatedRemainingSteps: null,
+      userProfile: {
+        sensory: { vision: 'default', color: 'default' },
+        cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+        interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+      },
+      telemetry: { focusSwitchesCurrentStep: 0, timeOnCurrentStep: 0, errorCount: 0, localCognitiveLoadScore: 0 },
     })
   })
 

@@ -18,7 +18,7 @@ function validateResponses(inputs, responses) {
       }
     } else if (type === 'boolean_confirm') {
       if (!val) errors[id] = 'This must be confirmed';
-    } else if (val === undefined || val === null || val === '') {
+    } else if (val === undefined || val === null || val === '' || Number.isNaN(val)) {
       errors[id] = 'This field is required';
     }
   });
@@ -376,6 +376,7 @@ const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
     isScreenReader = false,
     decisionExplanation = '',
     recommendedOptionId = '',
+    progressiveDisclosure = false,
   },
   ref
 ) {
@@ -441,6 +442,16 @@ const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
 
   return (
     <div className="flex flex-col gap-4">
+      {decisionExplanation && (
+        progressiveDisclosure ? (
+          <details className="text-sm text-muted-foreground">
+            <summary className="cursor-pointer font-medium">Show explanation</summary>
+            <p className="mt-1">{decisionExplanation}</p>
+          </details>
+        ) : (
+          <p className="text-sm text-muted-foreground">{decisionExplanation}</p>
+        )
+      )}
       {inputs.map((input) => {
         const isDimmed =
           requiresDecisionSupport &&

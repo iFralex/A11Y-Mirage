@@ -41,14 +41,12 @@ function calculateSessionMetrics(steps, userProfile) {
 export default function AccessibilityReport() {
   const workflow = useSharedStateStore((state) => state.workflow);
   const userProfile = useSharedStateStore((state) => state.userProfile);
-  const setUserProfile = useSharedStateStore((state) => state.setUserProfile);
 
   const [saved, setSaved] = useState(false);
 
   const metrics = calculateSessionMetrics(workflow.steps, userProfile);
 
   const handleSaveProfile = () => {
-    setUserProfile({ ...userProfile });
     setSaved(true);
   };
 
