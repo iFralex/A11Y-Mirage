@@ -119,7 +119,21 @@ Example of CORRECT context usage:
 
 Example of INCORRECT behavior (do NOT do this):
   Context contains: "User is planning a trip to Rome"
-  Bad question: "Where would you like to travel?" — this asks for information already known from the context.`;
+  Bad question: "Where would you like to travel?" — this asks for information already known from the context.
+
+Context referencing rules (CRITICAL - follow strictly):
+- Every step question MUST reference the relevant facts from the System Context or Workflow History that apply to that step.
+- Referencing known context in questions improves clarity: it confirms to the user that their preferences are understood, reduces misunderstandings, and avoids repetition that erodes trust.
+- Do NOT generate generic, context-free questions when relevant facts are available. Always personalise each question to the known context.
+
+Example of a WEAK generic question (do NOT do this):
+  Context contains: "User has a budget of €500 and prefers window seats"
+  Weak question: "What are your seating preferences?" — generic, ignores the known preference from context.
+
+Example of an IMPROVED context-referencing question (do this instead):
+  Context contains: "User has a budget of €500 and prefers window seats"
+  Good question: "You prefer window seats — shall we prioritise window-seat availability within your €500 budget, or is flexibility on seat type acceptable?"`;
+
 
 const REQUIRED_STEP_FIELDS = [
   "taskId",

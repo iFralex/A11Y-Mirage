@@ -548,14 +548,14 @@ process.env.NODE_ENV === "development"
 
 ### Task 20: Enforce Context Referencing in Step Questions
 
-- [ ] Open the LLM prompt template
-- [ ] Add a rule requiring step questions to reference relevant context facts
-- [ ] Add a short explanation of why context referencing improves clarity
-- [ ] Provide an example of a weak generic question
-- [ ] Provide an improved question referencing the context
-- [ ] Save the updated prompt template
-- [ ] Test the system using a context containing constraints or preferences
-- [ ] Verify that generated questions explicitly reference those constraints
+- [x] Open the LLM prompt template
+- [x] Add a rule requiring step questions to reference relevant context facts
+- [x] Add a short explanation of why context referencing improves clarity
+- [x] Provide an example of a weak generic question
+- [x] Provide an improved question referencing the context
+- [x] Save the updated prompt template
+- [x] Test the system using a context containing constraints or preferences
+- [x] Verify that generated questions explicitly reference those constraints
 
 ---
 

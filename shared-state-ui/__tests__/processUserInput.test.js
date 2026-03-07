@@ -243,6 +243,21 @@ describe("processWithGemini", () => {
     expect(callArg).toContain("Example of INCORRECT behavior");
   });
 
+  it("prompt includes context referencing rules requiring questions to reference known context facts", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("book a flight", "User has a budget of €500 and prefers window seats");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Context referencing rules");
+    expect(callArg).toContain("MUST reference the relevant facts");
+    expect(callArg).toContain("improves clarity");
+    expect(callArg).toContain("WEAK generic question");
+    expect(callArg).toContain("IMPROVED context-referencing question");
+  });
+
   it("retries and logs error when finalActionLabel is set but isFinalStep is false", async () => {
     const invalidData = { ...validStepData, isFinalStep: false, finalActionLabel: "Done" };
 
