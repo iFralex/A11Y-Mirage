@@ -575,18 +575,18 @@ process.env.NODE_ENV === "development"
 
 ### Task 22: Adapt Workflow Language to the User
 
-- [ ] Open the prompt template responsible for generating workflow steps
-- [ ] Add an instruction to detect the language of the user input
-- [ ] Add an instruction to generate all user-facing text in the detected language
-- [ ] Specify that this applies to `taskName`
-- [ ] Specify that this applies to step questions
-- [ ] Specify that this applies to input labels
-- [ ] Specify that this applies to `stateSummary`
-- [ ] Specify that this applies to `finalActionLabel`
-- [ ] Save the updated prompt template
-- [ ] Test the system using an Italian input
-- [ ] Test the system using an English input
-- [ ] Verify that the generated workflow language matches the input language
+- [x] Open the prompt template responsible for generating workflow steps
+- [x] Add an instruction to detect the language of the user input
+- [x] Add an instruction to generate all user-facing text in the detected language
+- [x] Specify that this applies to `taskName`
+- [x] Specify that this applies to step questions
+- [x] Specify that this applies to input labels
+- [x] Specify that this applies to `stateSummary`
+- [x] Specify that this applies to `finalActionLabel`
+- [x] Save the updated prompt template
+- [x] Test the system using an Italian input
+- [x] Test the system using an English input
+- [x] Verify that the generated workflow language matches the input language
 
 ---
 

@@ -147,7 +147,25 @@ Example of a FORBIDDEN redundant question (do NOT do this):
   Bad question: "What is your nightly budget?" — the budget (€200/night) is already confirmed in the context.
 
 Example of a CORRECT question that builds on the known information (do this instead):
-  Good question: "For your 3-night stay in Milan (up to €200/night), which check-in date works best for you?" — uses the confirmed facts and only asks for what is genuinely unknown.`;
+  Good question: "For your 3-night stay in Milan (up to €200/night), which check-in date works best for you?" — uses the confirmed facts and only asks for what is genuinely unknown.
+
+Language adaptation rules (CRITICAL - follow strictly):
+- Detect the language of the User Input. If the user writes in Italian, respond in Italian. If in English, respond in English. Match the language of all user-facing text to the detected input language.
+- The following fields MUST be generated in the detected language:
+  - taskName
+  - all step questions (input labels)
+  - stateSummary
+  - finalActionLabel (when present)
+- Do NOT mix languages. If the user input is in Italian, every label, question, and summary must be in Italian.
+
+Example of CORRECT language adaptation:
+  User Input (Italian): "Voglio prenotare un volo per Londra"
+  Correct taskName: "Prenotazione volo per Londra"
+  Correct label: "Data di partenza preferita"
+
+Example of INCORRECT behavior (do NOT do this):
+  User Input (Italian): "Voglio prenotare un volo per Londra"
+  Wrong taskName: "Book a flight to London" — the user wrote in Italian, so the response must also be in Italian.`;
 
 
 const REQUIRED_STEP_FIELDS = [

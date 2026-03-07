@@ -258,6 +258,35 @@ describe("processWithGemini", () => {
     expect(callArg).toContain("IMPROVED context-referencing question");
   });
 
+  it("prompt includes language adaptation rules to match user input language", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("Voglio prenotare un volo per Londra", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Language adaptation rules");
+    expect(callArg).toContain("Detect the language of the User Input");
+    expect(callArg).toContain("taskName");
+    expect(callArg).toContain("stateSummary");
+    expect(callArg).toContain("finalActionLabel");
+    expect(callArg).toContain("Italian");
+    expect(callArg).toContain("English");
+  });
+
+  it("prompt language adaptation rules cover all required user-facing fields", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("book a hotel", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("input labels");
+    expect(callArg).toContain("Do NOT mix languages");
+  });
+
   it("retries and logs error when finalActionLabel is set but isFinalStep is false", async () => {
     const invalidData = { ...validStepData, isFinalStep: false, finalActionLabel: "Done" };
 
