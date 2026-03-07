@@ -41,6 +41,7 @@ export default function WorkflowStepContainer() {
   const clearError = useSharedStateStore((state) => state.clearError);
   const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
   const setUserProfile = useSharedStateStore((state) => state.setUserProfile);
+  const updateUserProfile = useSharedStateStore((state) => state.updateUserProfile);
   const userProfile = useSharedStateStore((state) => state.userProfile);
   const telemetry = useSharedStateStore((state) => state.telemetry);
 
@@ -50,6 +51,7 @@ export default function WorkflowStepContainer() {
   const currentStep = workflow.steps[currentStepIndex] ?? null;
 
   const [stepAnnouncement, setStepAnnouncement] = useState('');
+  const [highLoadAlertShown, setHighLoadAlertShown] = useState(false);
 
   useEffect(() => {
     if (currentStep && !isLoading && !error) {
@@ -57,6 +59,17 @@ export default function WorkflowStepContainer() {
       setStepAnnouncement(`Step ${currentStep.stepNumber}: ${workflow.taskName}`);
     }
   }, [currentStep, isLoading, error, workflow.taskName]);
+
+  useEffect(() => {
+    setHighLoadAlertShown(false);
+  }, [currentStep?.stepId]);
+
+  useEffect(() => {
+    if (!highLoadAlertShown && telemetry.localCognitiveLoadScore > 7) {
+      updateUserProfile({ cognitive: { requiresDecisionSupport: true, safeMode: true } });
+      setHighLoadAlertShown(true);
+    }
+  }, [telemetry.localCognitiveLoadScore, highLoadAlertShown, updateUserProfile]);
 
   const handleSubmit = async () => {
     if (!stepRendererRef.current) return;
@@ -128,6 +141,15 @@ export default function WorkflowStepContainer() {
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {highLoadAlertShown && (
+        <Alert aria-live="assertive" className="mb-4">
+          <AlertTitle>Support Activated</AlertTitle>
+          <AlertDescription>
+            We noticed this step is taking longer. We have highlighted the current input and enabled safe mode to help you.
+          </AlertDescription>
         </Alert>
       )}
 

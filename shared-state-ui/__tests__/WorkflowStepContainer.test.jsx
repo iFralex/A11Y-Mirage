@@ -605,6 +605,104 @@ describe('WorkflowStepContainer', () => {
     expect(state.userProfile.sensory.vision).toBe('default');
   });
 
+  it('shows high cognitive load alert and enables decision support + safe mode when score exceeds 7', async () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        telemetry: {
+          focusSwitchesCurrentStep: 0,
+          timeOnCurrentStep: 0,
+          errorCount: 0,
+          localCognitiveLoadScore: 8,
+        },
+      })
+    );
+    render(<WorkflowStepContainer />);
+    await waitFor(() => {
+      expect(screen.getByText('Support Activated')).toBeInTheDocument();
+      expect(screen.getByText(/We noticed this step is taking longer/)).toBeInTheDocument();
+    });
+    const state = useSharedStateStore.getState();
+    expect(state.userProfile.cognitive.requiresDecisionSupport).toBe(true);
+    expect(state.userProfile.cognitive.safeMode).toBe(true);
+  });
+
+  it('does not show high cognitive load alert when score is 7 or below', () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        telemetry: {
+          focusSwitchesCurrentStep: 0,
+          timeOnCurrentStep: 0,
+          errorCount: 0,
+          localCognitiveLoadScore: 7,
+        },
+      })
+    );
+    render(<WorkflowStepContainer />);
+    expect(screen.queryByText('Support Activated')).not.toBeInTheDocument();
+  });
+
+  it('only triggers cognitive load override once per step', async () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        telemetry: {
+          focusSwitchesCurrentStep: 0,
+          timeOnCurrentStep: 0,
+          errorCount: 0,
+          localCognitiveLoadScore: 9,
+        },
+      })
+    );
+    render(<WorkflowStepContainer />);
+    await waitFor(() => {
+      expect(screen.getByText('Support Activated')).toBeInTheDocument();
+    });
+    // Only one alert should be shown
+    expect(screen.getAllByText('Support Activated')).toHaveLength(1);
+  });
+
+  it('resets high load alert when step changes', async () => {
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        telemetry: {
+          focusSwitchesCurrentStep: 0,
+          timeOnCurrentStep: 0,
+          errorCount: 0,
+          localCognitiveLoadScore: 9,
+        },
+      })
+    );
+    render(<WorkflowStepContainer />);
+    await waitFor(() => {
+      expect(screen.getByText('Support Activated')).toBeInTheDocument();
+    });
+
+    act(() => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1, STEP_2] },
+          currentStepIndex: 1,
+          telemetry: {
+            focusSwitchesCurrentStep: 0,
+            timeOnCurrentStep: 0,
+            errorCount: 0,
+            localCognitiveLoadScore: 0,
+          },
+        })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.queryByText('Support Activated')).not.toBeInTheDocument();
+    });
+  });
+
   it('submit does not call Gemini when validation fails', async () => {
     processWithGemini.mockClear();
     useSharedStateStore.setState(
