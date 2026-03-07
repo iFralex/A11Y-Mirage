@@ -228,6 +228,21 @@ describe("processWithGemini", () => {
     expect(callArg).toContain("Complete the workflow early");
   });
 
+  it("prompt includes context awareness rules to prevent re-asking known information", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("book a trip", "User is planning a 7-day trip to Rome");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("extract ALL available information from the System Context");
+    expect(callArg).toContain("NEVER ask the user for information that is already stated");
+    expect(callArg).toContain("reference it directly in the step question");
+    expect(callArg).toContain("Example of CORRECT context usage");
+    expect(callArg).toContain("Example of INCORRECT behavior");
+  });
+
   it("retries and logs error when finalActionLabel is set but isFinalStep is false", async () => {
     const invalidData = { ...validStepData, isFinalStep: false, finalActionLabel: "Done" };
 

@@ -534,15 +534,15 @@ process.env.NODE_ENV === "development"
 
 ### Task 19: Improve Context Awareness
 
-- [ ] Open the prompt instructions used by the LLM
-- [ ] Add an instruction telling the model to extract all available information from the provided context
-- [ ] Add a rule stating that known information must not be requested again
-- [ ] Add a rule stating that known information should instead be referenced in the question
-- [ ] Add an example of correct context usage in the prompt
-- [ ] Add an example of incorrect behavior (asking already known information)
-- [ ] Save the updated prompt
-- [ ] Test the system with a context that includes multiple known facts
-- [ ] Confirm that the generated questions reference those facts
+- [x] Open the prompt instructions used by the LLM
+- [x] Add an instruction telling the model to extract all available information from the provided context
+- [x] Add a rule stating that known information must not be requested again
+- [x] Add a rule stating that known information should instead be referenced in the question
+- [x] Add an example of correct context usage in the prompt
+- [x] Add an example of incorrect behavior (asking already known information)
+- [x] Save the updated prompt
+- [x] Test the system with a context that includes multiple known facts
+- [x] Confirm that the generated questions reference those facts
 
 ---
 

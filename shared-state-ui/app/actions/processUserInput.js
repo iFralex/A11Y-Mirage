@@ -106,7 +106,20 @@ Step minimisation rules (CRITICAL - follow strictly):
 - Use the MINIMUM number of steps necessary to complete the task. Do not add extra steps that are not strictly required.
 - Do NOT ask unnecessary follow-up questions. If information can be inferred or is already known, skip asking for it.
 - Stop generating steps as soon as enough information has been collected to complete the task. Do not continue collecting data beyond what is needed.
-- Complete the workflow early whenever possible. Set isFinalStep=true and estimatedRemainingSteps=0 the moment all required information is in hand.`;
+- Complete the workflow early whenever possible. Set isFinalStep=true and estimatedRemainingSteps=0 the moment all required information is in hand.
+
+Context awareness rules (CRITICAL - follow strictly):
+- Before generating any step, extract ALL available information from the System Context and Workflow History.
+- NEVER ask the user for information that is already stated in the System Context or Workflow History.
+- When you know a fact from the context, reference it directly in the step question instead of asking for it again.
+
+Example of CORRECT context usage:
+  Context contains: "User is planning a 7-day trip to Rome"
+  Good question: "You mentioned a 7-day trip to Rome — which dates are you considering for departure?"
+
+Example of INCORRECT behavior (do NOT do this):
+  Context contains: "User is planning a trip to Rome"
+  Bad question: "Where would you like to travel?" — this asks for information already known from the context.`;
 
 const REQUIRED_STEP_FIELDS = [
   "taskId",
