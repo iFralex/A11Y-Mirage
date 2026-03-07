@@ -3,6 +3,7 @@ import {
   buildConversationMemory,
   extractStepResults,
   getCurrentStep,
+  mapResponsesToProfile,
 } from '../app/utils/workflowHelpers'
 
 const step1 = {
@@ -120,5 +121,117 @@ describe('getCurrentStep', () => {
 
   it('returns the correct step at middle index', () => {
     expect(getCurrentStep(steps, 1)).toEqual(step2)
+  })
+})
+
+describe('mapResponsesToProfile', () => {
+  const defaultProfile = {
+    sensory: { vision: 'default', color: 'default' },
+    cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+    interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+  }
+
+  it('returns default profile for empty steps', () => {
+    expect(mapResponsesToProfile([])).toEqual(defaultProfile)
+  })
+
+  it('returns default profile for null input', () => {
+    expect(mapResponsesToProfile(null)).toEqual(defaultProfile)
+  })
+
+  it('returns default profile when steps have no responses', () => {
+    const steps = [{ response: null }, { response: undefined }]
+    expect(mapResponsesToProfile(steps)).toEqual(defaultProfile)
+  })
+
+  it('maps sensory_vision correctly', () => {
+    const steps = [{ response: { sensory_vision: 'screen_reader' } }]
+    expect(mapResponsesToProfile(steps).sensory.vision).toBe('screen_reader')
+  })
+
+  it('maps sensory_color correctly', () => {
+    const steps = [{ response: { sensory_color: 'high_contrast' } }]
+    expect(mapResponsesToProfile(steps).sensory.color).toBe('high_contrast')
+  })
+
+  it('maps cognitive_requiresDecisionSupport correctly', () => {
+    const steps = [{ response: { cognitive_requiresDecisionSupport: true } }]
+    expect(mapResponsesToProfile(steps).cognitive.requiresDecisionSupport).toBe(true)
+  })
+
+  it('maps cognitive_safeMode correctly', () => {
+    const steps = [{ response: { cognitive_safeMode: true } }]
+    expect(mapResponsesToProfile(steps).cognitive.safeMode).toBe(true)
+  })
+
+  it('maps cognitive_maxInputsPerStep as a number', () => {
+    const steps = [{ response: { cognitive_maxInputsPerStep: 3 } }]
+    expect(mapResponsesToProfile(steps).cognitive.maxInputsPerStep).toBe(3)
+  })
+
+  it('ignores cognitive_maxInputsPerStep if not a number', () => {
+    const steps = [{ response: { cognitive_maxInputsPerStep: 'three' } }]
+    expect(mapResponsesToProfile(steps).cognitive.maxInputsPerStep).toBeNull()
+  })
+
+  it('maps interaction_preferredModality correctly', () => {
+    const steps = [{ response: { interaction_preferredModality: 'voice' } }]
+    expect(mapResponsesToProfile(steps).interaction.preferredModality).toBe('voice')
+  })
+
+  it('maps interaction_progressiveDisclosure correctly', () => {
+    const steps = [{ response: { interaction_progressiveDisclosure: true } }]
+    expect(mapResponsesToProfile(steps).interaction.progressiveDisclosure).toBe(true)
+  })
+
+  it('falls back to default for invalid sensory_vision value', () => {
+    const steps = [{ response: { sensory_vision: 'invalid_value' } }]
+    expect(mapResponsesToProfile(steps).sensory.vision).toBe('default')
+  })
+
+  it('falls back to default for invalid interaction_preferredModality value', () => {
+    const steps = [{ response: { interaction_preferredModality: 'telepathy' } }]
+    expect(mapResponsesToProfile(steps).interaction.preferredModality).toBe('visual')
+  })
+
+  it('merges responses from multiple steps', () => {
+    const steps = [
+      { response: { sensory_vision: 'low_vision', sensory_color: 'high_contrast' } },
+      { response: { cognitive_safeMode: true, interaction_preferredModality: 'hybrid' } },
+    ]
+    const profile = mapResponsesToProfile(steps)
+    expect(profile.sensory.vision).toBe('low_vision')
+    expect(profile.sensory.color).toBe('high_contrast')
+    expect(profile.cognitive.safeMode).toBe(true)
+    expect(profile.interaction.preferredModality).toBe('hybrid')
+  })
+
+  it('maps a full set of onboarding responses correctly', () => {
+    const steps = [
+      {
+        response: {
+          sensory_vision: 'screen_reader',
+          sensory_color: 'high_contrast',
+        },
+      },
+      {
+        response: {
+          cognitive_maxInputsPerStep: 2,
+          cognitive_requiresDecisionSupport: true,
+          cognitive_safeMode: true,
+        },
+      },
+      {
+        response: {
+          interaction_preferredModality: 'voice',
+          interaction_progressiveDisclosure: true,
+        },
+      },
+    ]
+    expect(mapResponsesToProfile(steps)).toEqual({
+      sensory: { vision: 'screen_reader', color: 'high_contrast' },
+      cognitive: { maxInputsPerStep: 2, requiresDecisionSupport: true, safeMode: true },
+      interaction: { preferredModality: 'voice', progressiveDisclosure: true },
+    })
   })
 })

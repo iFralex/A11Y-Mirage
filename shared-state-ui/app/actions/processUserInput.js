@@ -13,7 +13,7 @@ const responseSchema = {
     taskId: { type: SchemaType.STRING },
     taskType: {
       type: SchemaType.STRING,
-      enum: ["generic"],
+      enum: ["generic", "accessibility_onboarding"],
     },
     taskName: { type: SchemaType.STRING },
     stepId: { type: SchemaType.STRING },

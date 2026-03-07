@@ -6,6 +6,7 @@ import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { processWithGemini } from '@/app/actions/processUserInput';
+import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
 
 function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
   return (
@@ -39,6 +40,7 @@ export default function WorkflowStepContainer() {
   const setError = useSharedStateStore((state) => state.setError);
   const clearError = useSharedStateStore((state) => state.clearError);
   const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
+  const setUserProfile = useSharedStateStore((state) => state.setUserProfile);
 
   const stepRendererRef = useRef(null);
   const titleRef = useRef(null);
@@ -92,7 +94,10 @@ export default function WorkflowStepContainer() {
   };
 
   const handleComplete = () => {
-    console.log("Workflow completed");
+    if (workflow.steps[0]?.taskType === 'accessibility_onboarding') {
+      const profile = mapResponsesToProfile(workflow.steps);
+      setUserProfile(profile);
+    }
     resetWorkflow();
     setSystemContext("");
   };

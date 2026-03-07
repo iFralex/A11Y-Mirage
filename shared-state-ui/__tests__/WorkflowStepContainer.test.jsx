@@ -535,6 +535,75 @@ describe('WorkflowStepContainer', () => {
     expect(state.systemContext).toBe('');
   });
 
+  it('maps accessibility onboarding responses to userProfile on completion', () => {
+    const onboardingStep = {
+      stepId: 'step-final',
+      stepNumber: 2,
+      taskId: 'a11y-1',
+      taskName: 'Accessibility Onboarding',
+      taskType: 'accessibility_onboarding',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'Profile created.',
+      finalActionLabel: 'Save Profile',
+      inputs: [],
+      response: {
+        sensory_vision: 'screen_reader',
+        sensory_color: 'high_contrast',
+        cognitive_safeMode: true,
+        interaction_preferredModality: 'voice',
+      },
+    };
+    useSharedStateStore.setState(
+      baseState({
+        systemContext: 'some context',
+        workflow: { taskId: 'a11y-1', taskName: 'Accessibility Onboarding', steps: [onboardingStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Save Profile' }));
+    const state = useSharedStateStore.getState();
+    expect(state.userProfile.sensory.vision).toBe('screen_reader');
+    expect(state.userProfile.sensory.color).toBe('high_contrast');
+    expect(state.userProfile.cognitive.safeMode).toBe(true);
+    expect(state.userProfile.interaction.preferredModality).toBe('voice');
+    expect(state.workflow.steps).toHaveLength(0);
+  });
+
+  it('does not update userProfile when completing a non-onboarding workflow', () => {
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      taskType: 'generic',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'Summary.',
+      finalActionLabel: 'Finish',
+      inputs: [],
+      response: { sensory_vision: 'screen_reader' },
+    };
+    const initialProfile = {
+      sensory: { vision: 'default', color: 'default' },
+      cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+      interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+    };
+    useSharedStateStore.setState(
+      baseState({
+        systemContext: 'some context',
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+        userProfile: initialProfile,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    const state = useSharedStateStore.getState();
+    expect(state.userProfile.sensory.vision).toBe('default');
+  });
+
   it('submit does not call Gemini when validation fails', async () => {
     processWithGemini.mockClear();
     useSharedStateStore.setState(

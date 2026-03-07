@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ContextSetup from '../app/components/ContextSetup'
 import { useSharedStateStore } from '../app/store/useSharedState'
+
+vi.mock('../app/actions/processUserInput', () => ({
+  processWithGemini: vi.fn(),
+}))
+
+import { processWithGemini } from '../app/actions/processUserInput'
 
 describe('ContextSetup', () => {
   beforeEach(() => {
@@ -76,5 +82,54 @@ describe('ContextSetup', () => {
 
     const textarea = screen.getByLabelText('Oppure incolla il testo del contesto')
     expect(textarea.value).toBe(fileContent)
+  })
+
+  describe('Create Accessibility Profile button', () => {
+    beforeEach(() => {
+      processWithGemini.mockReset()
+    })
+
+    it('renders the Create Accessibility Profile button', () => {
+      render(<ContextSetup />)
+      expect(screen.getByRole('button', { name: 'Create Accessibility Profile' })).toBeInTheDocument()
+    })
+
+    it('clicking the button sets systemContext and starts the workflow', async () => {
+      const firstStep = {
+        taskId: 'a11y-task-1',
+        taskType: 'accessibility_onboarding',
+        taskName: 'Accessibility Onboarding',
+        stepId: 'step_1',
+        stepNumber: 1,
+        estimatedRemainingSteps: 5,
+        stateSummary: 'Collecting accessibility preferences.',
+        inputs: [{ id: 'sensory_vision', type: 'select_option', label: 'Vision level', required: true }],
+        isFinalStep: false,
+      }
+      processWithGemini.mockResolvedValueOnce(firstStep)
+
+      render(<ContextSetup />)
+      fireEvent.click(screen.getByRole('button', { name: 'Create Accessibility Profile' }))
+
+      await waitFor(() => {
+        const state = useSharedStateStore.getState()
+        expect(state.systemContext).toContain('accessibility_onboarding')
+        expect(state.workflow.steps).toHaveLength(1)
+        expect(state.workflow.steps[0].taskType).toBe('accessibility_onboarding')
+        expect(state.isLoading).toBe(false)
+      })
+    })
+
+    it('sets error state when processWithGemini fails', async () => {
+      processWithGemini.mockRejectedValueOnce(new Error('Network error'))
+
+      render(<ContextSetup />)
+      fireEvent.click(screen.getByRole('button', { name: 'Create Accessibility Profile' }))
+
+      await waitFor(() => {
+        expect(useSharedStateStore.getState().error).toBe('Network error')
+        expect(useSharedStateStore.getState().isLoading).toBe(false)
+      })
+    })
   })
 })

@@ -5,10 +5,28 @@ import { useSharedStateStore } from '@/app/store/useSharedState';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { processWithGemini } from '@/app/actions/processUserInput';
+
+const ACCESSIBILITY_ONBOARDING_CONTEXT = `You are an accessibility onboarding agent. Ask the user one question at a time to determine their visual, cognitive, and motor needs. Ask about voice synthesis, contrast, need for detailed explanations, and safe mode. Use simple inputs (boolean_confirm, select_option). End the workflow when you have enough data.
+
+CRITICAL: Set taskType to "accessibility_onboarding" in every response.
+
+Use these exact input IDs (do not deviate):
+- Visual impairment level: input ID "sensory_vision", type select_option, options: ["default", "screen_reader", "low_vision"]
+- Color/contrast preference: input ID "sensory_color", type select_option, options: ["default", "high_contrast"]
+- Max inputs per step (cognitive load): input ID "cognitive_maxInputsPerStep", type number_input
+- Needs decision support: input ID "cognitive_requiresDecisionSupport", type boolean_confirm
+- Safe mode (double-confirm actions): input ID "cognitive_safeMode", type boolean_confirm
+- Preferred interaction modality: input ID "interaction_preferredModality", type select_option, options: ["visual", "voice", "hybrid"]
+- Progressive disclosure of explanations: input ID "interaction_progressiveDisclosure", type boolean_confirm`;
 
 export default function ContextSetup() {
   const [localContext, setLocalContext] = useState('');
   const setSystemContext = useSharedStateStore((state) => state.setSystemContext);
+  const addStep = useSharedStateStore((state) => state.addStep);
+  const setLoading = useSharedStateStore((state) => state.setLoading);
+  const setError = useSharedStateStore((state) => state.setError);
+  const setEstimatedSteps = useSharedStateStore((state) => state.setEstimatedSteps);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -37,6 +55,21 @@ export default function ContextSetup() {
 
   const handleSave = () => {
     setSystemContext(localContext);
+  };
+
+  const handleStartAccessibilityOnboarding = async () => {
+    setSystemContext(ACCESSIBILITY_ONBOARDING_CONTEXT);
+    setLoading(true);
+    try {
+      const emptyWorkflow = { taskId: null, taskName: '', steps: [] };
+      const firstStep = await processWithGemini('Start', ACCESSIBILITY_ONBOARDING_CONTEXT, emptyWorkflow);
+      addStep(firstStep);
+      setEstimatedSteps(firstStep.estimatedRemainingSteps);
+    } catch (err) {
+      setError(err.message || 'Failed to start accessibility onboarding.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,6 +105,17 @@ export default function ContextSetup() {
         <Button onClick={handleSave} disabled={!localContext.trim()}>
           Salva Contesto
         </Button>
+        <div className="border-t pt-4">
+          <p className="text-sm text-muted-foreground mb-2">
+            Alternatively, set up your accessibility preferences automatically:
+          </p>
+          <Button
+            variant="outline"
+            onClick={handleStartAccessibilityOnboarding}
+          >
+            Create Accessibility Profile
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
