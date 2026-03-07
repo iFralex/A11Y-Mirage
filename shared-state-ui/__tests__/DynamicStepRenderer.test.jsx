@@ -368,4 +368,121 @@ describe('DynamicStepRenderer', () => {
       expect(nameWrapper?.className).not.toContain('pointer-events-none');
     });
   });
+
+  describe('Screen Reader Mode (isScreenReader=true)', () => {
+    it('renders a linear DOM structure (no data-input-tunnel wrappers)', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'name', type: 'text_input', label: 'Name' }]}
+          isScreenReader={true}
+        />
+      );
+      expect(container.querySelector('[data-input-tunnel]')).not.toBeInTheDocument();
+    });
+
+    it('still renders text_input with label and input', () => {
+      render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'name', type: 'text_input', label: 'Your name' }]}
+          isScreenReader={true}
+        />
+      );
+      expect(screen.getByLabelText('Your name')).toBeInTheDocument();
+    });
+
+    it('renders select_option with fieldset and legend containing the label', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'city', type: 'select_option', label: 'Pick a city', options: ['Rome', 'Paris'] }]}
+          isScreenReader={true}
+        />
+      );
+      expect(container.querySelector('fieldset')).toBeInTheDocument();
+      expect(container.querySelector('legend')).toBeInTheDocument();
+      expect(container.querySelector('legend').textContent).toContain('Pick a city');
+    });
+
+    it('includes decisionExplanation in the legend for select_option', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'city', type: 'select_option', label: 'Pick a city', options: ['Rome', 'Paris'] }]}
+          isScreenReader={true}
+          decisionExplanation="This helps us route your trip."
+        />
+      );
+      const legend = container.querySelector('legend');
+      expect(legend.textContent).toContain('Pick a city');
+      expect(legend.textContent).toContain('This helps us route your trip.');
+    });
+
+    it('renders multi_select with fieldset, legend, and decisionExplanation', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'features', type: 'multi_select', label: 'Select features', options: ['A', 'B'] }]}
+          isScreenReader={true}
+          decisionExplanation="Choose all that apply."
+        />
+      );
+      const legend = container.querySelector('legend');
+      expect(legend).toBeInTheDocument();
+      expect(legend.textContent).toContain('Select features');
+      expect(legend.textContent).toContain('Choose all that apply.');
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    });
+
+    it('renders rating with fieldset, linear layout (flex-col), and decisionExplanation', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'score', type: 'rating', label: 'Rate your experience' }]}
+          isScreenReader={true}
+          decisionExplanation="1 is poor, 5 is excellent."
+        />
+      );
+      const legend = container.querySelector('legend');
+      expect(legend.textContent).toContain('Rate your experience');
+      expect(legend.textContent).toContain('1 is poor, 5 is excellent.');
+      // Rating group in screen reader mode uses flex-col (linear), not flex-row
+      const radioGroup = container.querySelector('[role="radiogroup"]');
+      expect(radioGroup?.className).not.toContain('flex-row');
+      expect(radioGroup?.className).toContain('flex-col');
+    });
+
+    it('shows legend with only label when decisionExplanation is empty', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'city', type: 'select_option', label: 'Pick a city', options: ['Rome'] }]}
+          isScreenReader={true}
+          decisionExplanation=""
+        />
+      );
+      const legend = container.querySelector('legend');
+      expect(legend.textContent).toBe('Pick a city');
+    });
+
+    it('shows validation errors in screen reader mode', () => {
+      const ref = createRef();
+      render(
+        <DynamicStepRenderer
+          ref={ref}
+          inputs={[{ id: 'name', type: 'text_input', label: 'Name', required: true }]}
+          isScreenReader={true}
+        />
+      );
+      let result;
+      act(() => { result = ref.current.validate(); });
+      expect(result).toBe(false);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('does not use flex-row layout for rating in standard (non-screen-reader) mode', () => {
+      const { container } = render(
+        <DynamicStepRenderer
+          inputs={[{ id: 'score', type: 'rating', label: 'Rate your experience' }]}
+          isScreenReader={false}
+        />
+      );
+      const radioGroup = container.querySelector('[role="radiogroup"]');
+      expect(radioGroup?.className).toContain('flex-row');
+    });
+  });
 });

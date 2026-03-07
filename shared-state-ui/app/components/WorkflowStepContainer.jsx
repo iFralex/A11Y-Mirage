@@ -208,6 +208,8 @@ export default function WorkflowStepContainer() {
                 inputs={currentStep.inputs || []}
                 initialResponses={currentStep.response || {}}
                 requiresDecisionSupport={userProfile.cognitive.requiresDecisionSupport}
+                isScreenReader={userProfile.sensory.vision === 'screen_reader'}
+                decisionExplanation={currentStep.decisionExplanation || ''}
               />
             </AdaptiveLayoutProvider>
           )}
