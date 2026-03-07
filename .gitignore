@@ -46,3 +46,6 @@ temp/
 
 # Application logs
 **/logs/
+
+# ralphex progress logs
+.ralphex/progress/

@@ -4,6 +4,7 @@ import { useState } from "react";
 import ContextSetup from "@/app/components/ContextSetup";
 import WorkflowStepContainer from "@/app/components/WorkflowStepContainer";
 import WorkflowDebugConsole from "@/app/components/WorkflowDebugConsole";
+import UserProfileOverride from "@/app/components/UserProfileOverride";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSharedStateStore } from "@/app/store/useSharedState";
 import { processWithGemini } from "@/app/actions/processUserInput";
@@ -53,6 +54,7 @@ export default function Main() {
           <WorkflowStepContainer />
         </main>
         <WorkflowDebugConsole />
+        <UserProfileOverride />
       </div>
     );
   }
@@ -95,6 +97,7 @@ export default function Main() {
         </form>
       </main>
       <WorkflowDebugConsole />
+      <UserProfileOverride />
     </div>
   );
 }
