@@ -165,7 +165,18 @@ Example of CORRECT language adaptation:
 
 Example of INCORRECT behavior (do NOT do this):
   User Input (Italian): "Voglio prenotare un volo per Londra"
-  Wrong taskName: "Book a flight to London" — the user wrote in Italian, so the response must also be in Italian.`;
+  Wrong taskName: "Book a flight to London" — the user wrote in Italian, so the response must also be in Italian.
+
+Single-step workflow rules (CRITICAL - follow strictly):
+- Some tasks require only a SINGLE STEP to complete. When the user's request is simple and all necessary information can be collected in one interaction, do NOT generate additional steps.
+- You are allowed — and encouraged — to finish the workflow immediately after the first step if that is sufficient.
+- When generating a single-step workflow, you MUST set isFinalStep=true and estimatedRemainingSteps=0 on that step.
+
+Example of a valid single-step workflow:
+  User Input: "Turn on dark mode"
+  This task has only one decision to make (confirm the action).
+  Correct response: stepNumber=1, isFinalStep=true, estimatedRemainingSteps=0
+  The workflow ends after this single confirmation step — no further steps are needed.`;
 
 
 const REQUIRED_STEP_FIELDS = [

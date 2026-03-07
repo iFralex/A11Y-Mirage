@@ -592,15 +592,15 @@ process.env.NODE_ENV === "development"
 
 ### Task 23: Allow Single-Step Workflows
 
-- [ ] Open the LLM prompt template
-- [ ] Add an instruction explaining that some tasks require only one step
-- [ ] Add a rule allowing the workflow to finish immediately when appropriate
-- [ ] Add instructions for the model to set `isFinalStep = true` in that case
-- [ ] Add instructions for the model to set `estimatedRemainingSteps = 0`
-- [ ] Add an example of a valid single-step workflow
-- [ ] Save the updated prompt template
-- [ ] Test the system with a task that can be completed in one decision
-- [ ] Verify that the model generates a single-step workflow
+- [x] Open the LLM prompt template
+- [x] Add an instruction explaining that some tasks require only one step
+- [x] Add a rule allowing the workflow to finish immediately when appropriate
+- [x] Add instructions for the model to set `isFinalStep = true` in that case
+- [x] Add instructions for the model to set `estimatedRemainingSteps = 0`
+- [x] Add an example of a valid single-step workflow
+- [x] Save the updated prompt template
+- [x] Test the system with a task that can be completed in one decision
+- [x] Verify that the model generates a single-step workflow
 
 ---
 

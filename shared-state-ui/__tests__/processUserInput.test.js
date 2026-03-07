@@ -302,4 +302,55 @@ describe("processWithGemini", () => {
       expect.stringContaining("finalActionLabel")
     );
   });
+
+  it("prompt includes single-step workflow rules allowing workflows to finish in one step", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("Turn on dark mode", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Single-step workflow rules");
+    expect(callArg).toContain("SINGLE STEP");
+    expect(callArg).toContain("finish the workflow immediately after the first step");
+    expect(callArg).toContain("isFinalStep=true");
+    expect(callArg).toContain("estimatedRemainingSteps=0");
+  });
+
+  it("prompt includes a single-step workflow example with isFinalStep=true and estimatedRemainingSteps=0", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("simple task", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("Example of a valid single-step workflow");
+    expect(callArg).toContain("stepNumber=1, isFinalStep=true, estimatedRemainingSteps=0");
+  });
+
+  it("correctly parses a single-step workflow response with isFinalStep=true and estimatedRemainingSteps=0", async () => {
+    const singleStepData = {
+      ...validStepData,
+      stepId: "step_1",
+      stepNumber: 1,
+      estimatedRemainingSteps: 0,
+      isFinalStep: true,
+      finalActionLabel: "Confirm",
+      finalSummary: "Enable dark mode on your account.",
+    };
+
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(singleStepData) },
+    });
+
+    const result = await processWithGemini("Turn on dark mode", "ctx");
+
+    expect(result.stepNumber).toBe(1);
+    expect(result.isFinalStep).toBe(true);
+    expect(result.estimatedRemainingSteps).toBe(0);
+    expect(result.finalActionLabel).toBe("Confirm");
+    expect(result.finalSummary).toBe("Enable dark mode on your account.");
+  });
 });
