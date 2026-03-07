@@ -7,6 +7,22 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { processWithGemini } from '@/app/actions/processUserInput';
 
+function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
+  return (
+    <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex flex-col gap-3">
+      {summary && (
+        <p className="text-sm text-green-900">{summary}</p>
+      )}
+      <Button
+        onClick={onComplete}
+        className="self-start bg-green-700 hover:bg-green-800 text-white"
+      >
+        {actionLabel || "Complete Task"}
+      </Button>
+    </div>
+  );
+}
+
 export default function WorkflowStepContainer() {
   const workflow = useSharedStateStore((state) => state.workflow);
   const currentStepIndex = useSharedStateStore((state) => state.currentStepIndex);
@@ -75,6 +91,10 @@ export default function WorkflowStepContainer() {
     setSystemContext("");
   };
 
+  const handleComplete = () => {
+    console.log("Workflow completed");
+  };
+
   return (
     <div
       role="region"
@@ -122,17 +142,29 @@ export default function WorkflowStepContainer() {
 
           <p className="text-muted-foreground text-sm">{currentStep.stateSummary}</p>
 
-          <DynamicStepRenderer
-            ref={stepRendererRef}
-            key={currentStep.stepId}
-            inputs={currentStep.inputs || []}
-            initialResponses={currentStep.response || {}}
-          />
+          {!currentStep.isFinalStep && (
+            <DynamicStepRenderer
+              ref={stepRendererRef}
+              key={currentStep.stepId}
+              inputs={currentStep.inputs || []}
+              initialResponses={currentStep.response || {}}
+            />
+          )}
+
+          {currentStep.isFinalStep && (
+            <FinalSummaryContainer
+              summary={currentStep.finalSummary}
+              actionLabel={currentStep.finalActionLabel}
+              onComplete={handleComplete}
+            />
+          )}
 
           <div className="flex gap-2 mt-2 flex-wrap">
-            <Button onClick={handleSubmit} className="self-start">
-              Submit Step
-            </Button>
+            {!currentStep.isFinalStep && (
+              <Button onClick={handleSubmit} className="self-start">
+                Submit Step
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={handlePrevious}

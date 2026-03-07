@@ -504,18 +504,18 @@ process.env.NODE_ENV === "development"
 
 ### Task 17: Add Final Step UI Handling
 
-- [ ] Open `WorkflowStepContainer.jsx`
-- [ ] Identify where the current step is rendered
-- [ ] Add a conditional check for `step.isFinalStep`
-- [ ] Render a final summary section when `step.finalSummary` exists
-- [ ] Create a container component for the final summary
-- [ ] Display the summary text inside that container
-- [ ] Add a completion button below the summary
-- [ ] Set the button label to `step.finalActionLabel` if available
-- [ ] Add a fallback label `"Complete Task"` when `finalActionLabel` is missing
-- [ ] Attach a click handler to the completion button
-- [ ] Implement the click handler to log `"Workflow completed"` in the console
-- [ ] Verify the UI renders correctly for both normal steps and final steps
+- [x] Open `WorkflowStepContainer.jsx`
+- [x] Identify where the current step is rendered
+- [x] Add a conditional check for `step.isFinalStep`
+- [x] Render a final summary section when `step.finalSummary` exists
+- [x] Create a container component for the final summary
+- [x] Display the summary text inside that container
+- [x] Add a completion button below the summary
+- [x] Set the button label to `step.finalActionLabel` if available
+- [x] Add a fallback label `"Complete Task"` when `finalActionLabel` is missing
+- [x] Attach a click handler to the completion button
+- [x] Implement the click handler to log `"Workflow completed"` in the console
+- [x] Verify the UI renders correctly for both normal steps and final steps
 
 ---
 

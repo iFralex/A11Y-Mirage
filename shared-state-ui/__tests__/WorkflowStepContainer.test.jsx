@@ -416,6 +416,124 @@ describe('WorkflowStepContainer', () => {
     expect(heading).toHaveAttribute('tabindex', '-1');
   });
 
+  it('renders final summary section when isFinalStep is true and finalSummary is set', () => {
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      stateSummary: 'All information collected.',
+      isFinalStep: true,
+      finalSummary: 'You are flying to Rome on 2024-06-01.',
+      finalActionLabel: 'Confirm Booking',
+      inputs: [],
+      response: null,
+    };
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    expect(screen.getByText('You are flying to Rome on 2024-06-01.')).toBeInTheDocument();
+  });
+
+  it('renders completion button with finalActionLabel on final step', () => {
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'Summary text.',
+      finalActionLabel: 'Confirm Booking',
+      inputs: [],
+      response: null,
+    };
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    expect(screen.getByRole('button', { name: 'Confirm Booking' })).toBeInTheDocument();
+  });
+
+  it('uses "Complete Task" fallback label when finalActionLabel is missing', () => {
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'All done.',
+      finalActionLabel: null,
+      inputs: [],
+      response: null,
+    };
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    expect(screen.getByRole('button', { name: 'Complete Task' })).toBeInTheDocument();
+  });
+
+  it('does not render Submit Step button on final step', () => {
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'Summary.',
+      finalActionLabel: 'Finish',
+      inputs: [],
+      response: null,
+    };
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    expect(screen.queryByRole('button', { name: 'Submit Step' })).not.toBeInTheDocument();
+  });
+
+  it('logs "Workflow completed" to console when completion button is clicked', () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const finalStep = {
+      stepId: 'step-final',
+      stepNumber: 3,
+      taskId: 'task-abc',
+      taskName: 'Plan a Trip',
+      stateSummary: 'Done.',
+      isFinalStep: true,
+      finalSummary: 'Summary.',
+      finalActionLabel: 'Finish',
+      inputs: [],
+      response: null,
+    };
+    useSharedStateStore.setState(
+      baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+        currentStepIndex: 0,
+      })
+    );
+    render(<WorkflowStepContainer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    expect(consoleSpy).toHaveBeenCalledWith('Workflow completed');
+    consoleSpy.mockRestore();
+  });
+
   it('submit does not call Gemini when validation fails', async () => {
     processWithGemini.mockClear();
     useSharedStateStore.setState(
