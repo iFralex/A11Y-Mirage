@@ -6,6 +6,15 @@ import DynamicStepRenderer from '@/app/components/DynamicStepRenderer';
 import AdaptiveLayoutProvider from '@/app/components/AdaptiveLayoutProvider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { processWithGemini } from '@/app/actions/processUserInput';
 import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
 import { generateSemanticSummary, speakText, cancelSpeech } from '@/app/utils/semanticSpeech';
@@ -54,6 +63,8 @@ export default function WorkflowStepContainer() {
 
   const [stepAnnouncement, setStepAnnouncement] = useState('');
   const [highLoadAlertShown, setHighLoadAlertShown] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [pendingResponses, setPendingResponses] = useState(null);
 
   useEffect(() => {
     if (currentStep && !isLoading && !error) {
@@ -98,12 +109,23 @@ export default function WorkflowStepContainer() {
     };
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!stepRendererRef.current) return;
     const isValid = stepRendererRef.current.validate();
     if (!isValid) return;
 
     const responses = stepRendererRef.current.getResponses();
+
+    if (userProfile.cognitive.safeMode) {
+      setPendingResponses(responses);
+      setReviewDialogOpen(true);
+      return;
+    }
+
+    submitResponses(responses);
+  };
+
+  const submitResponses = async (responses) => {
     updateStepResponse(currentStep.stepId, responses);
 
     const updatedSteps = workflow.steps
@@ -124,6 +146,19 @@ export default function WorkflowStepContainer() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmSubmit = () => {
+    setReviewDialogOpen(false);
+    if (pendingResponses) {
+      submitResponses(pendingResponses);
+      setPendingResponses(null);
+    }
+  };
+
+  const handleUndoReview = () => {
+    setReviewDialogOpen(false);
+    setPendingResponses(null);
   };
 
   const handlePrevious = () => {
@@ -180,6 +215,35 @@ export default function WorkflowStepContainer() {
         </Alert>
       )}
 
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Review Your Choices</DialogTitle>
+            <DialogDescription>
+              Please confirm your selections before proceeding.
+            </DialogDescription>
+          </DialogHeader>
+          {pendingResponses && (
+            <div className="flex flex-col gap-2 text-sm">
+              {Object.entries(pendingResponses).map(([key, value]) => (
+                <div key={key} className="flex gap-2">
+                  <span className="font-medium">{key}:</span>
+                  <span>{Array.isArray(value) ? value.join(', ') : String(value)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={handleUndoReview}>
+              Undo
+            </Button>
+            <Button onClick={handleConfirmSubmit}>
+              Confirm &amp; Proceed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {currentStep && (
         <div className="rounded-xl border bg-card p-6 shadow-sm flex flex-col gap-4">
           <h2
@@ -210,6 +274,7 @@ export default function WorkflowStepContainer() {
                 requiresDecisionSupport={userProfile.cognitive.requiresDecisionSupport}
                 isScreenReader={userProfile.sensory.vision === 'screen_reader'}
                 decisionExplanation={currentStep.decisionExplanation || ''}
+                recommendedOptionId={currentStep.recommendedOptionId || ''}
               />
             </AdaptiveLayoutProvider>
           )}
@@ -225,7 +290,7 @@ export default function WorkflowStepContainer() {
           <div className="flex gap-2 mt-2 flex-wrap">
             {!currentStep.isFinalStep && (
               <Button onClick={handleSubmit} className="self-start">
-                Submit Step
+                {userProfile.cognitive.safeMode ? 'Review Choices' : 'Submit Step'}
               </Button>
             )}
             <Button

@@ -369,6 +369,41 @@ describe('DynamicStepRenderer', () => {
     });
   });
 
+  describe('recommendedOptionId (Suggested badge)', () => {
+    const inputs = [
+      { id: 'city', type: 'select_option', label: 'Pick a city', options: ['Rome', 'Paris', 'Tokyo'] },
+    ];
+
+    it('renders Suggested badge next to the recommended option', () => {
+      render(<DynamicStepRenderer inputs={inputs} recommendedOptionId="Paris" />);
+      expect(screen.getByText('Suggested')).toBeInTheDocument();
+    });
+
+    it('does not render Suggested badge when recommendedOptionId is empty', () => {
+      render(<DynamicStepRenderer inputs={inputs} recommendedOptionId="" />);
+      expect(screen.queryByText('Suggested')).not.toBeInTheDocument();
+    });
+
+    it('does not render Suggested badge when recommendedOptionId does not match any option', () => {
+      render(<DynamicStepRenderer inputs={inputs} recommendedOptionId="Berlin" />);
+      expect(screen.queryByText('Suggested')).not.toBeInTheDocument();
+    });
+
+    it('renders Suggested badge only next to the matched option', () => {
+      render(<DynamicStepRenderer inputs={inputs} recommendedOptionId="Tokyo" />);
+      const badge = screen.getByText('Suggested');
+      expect(badge).toBeInTheDocument();
+      // Only one badge
+      expect(screen.getAllByText('Suggested')).toHaveLength(1);
+    });
+
+    it('does not render Suggested badge for non-select_option input types', () => {
+      const textInputs = [{ id: 'name', type: 'text_input', label: 'Name' }];
+      render(<DynamicStepRenderer inputs={textInputs} recommendedOptionId="some-id" />);
+      expect(screen.queryByText('Suggested')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Screen Reader Mode (isScreenReader=true)', () => {
     it('renders a linear DOM structure (no data-input-tunnel wrappers)', () => {
       const { container } = render(

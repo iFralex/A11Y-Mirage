@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 
 function validateResponses(inputs, responses) {
   const errors = {};
@@ -195,7 +196,7 @@ function renderScreenReaderInput(input, responses, updateResponses, clearError, 
   }
 }
 
-function renderSingleInput(input, responses, updateResponses, clearError) {
+function renderSingleInput(input, responses, updateResponses, clearError, recommendedOptionId) {
   const { id, type, label, options = [], placeholder, required } = input;
   const value = responses[id] ?? '';
 
@@ -241,10 +242,12 @@ function renderSingleInput(input, responses, updateResponses, clearError) {
           <RadioGroup value={value} onValueChange={updateValue}>
             {options.map((option, index) => {
               const optionId = `${id}-option-${index}`;
+              const isSuggested = recommendedOptionId && option === recommendedOptionId;
               return (
                 <div key={optionId} className="flex items-center gap-2">
                   <RadioGroupItem value={option} id={optionId} />
                   <Label htmlFor={optionId}>{option}</Label>
+                  {isSuggested && <Badge variant="secondary">Suggested</Badge>}
                 </div>
               );
             })}
@@ -372,6 +375,7 @@ const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
     requiresDecisionSupport = false,
     isScreenReader = false,
     decisionExplanation = '',
+    recommendedOptionId = '',
   },
   ref
 ) {
@@ -455,7 +459,7 @@ const DynamicStepRenderer = forwardRef(function DynamicStepRenderer(
             onFocus={() => handleInputFocus(input.id)}
             onBlur={handleInputBlur}
           >
-            {renderSingleInput(input, stepResponses, updateResponses, clearError)}
+            {renderSingleInput(input, stepResponses, updateResponses, clearError, recommendedOptionId)}
             {errors[input.id] && (
               <p role="alert" className="text-red-600 text-sm mt-1">
                 {errors[input.id]}

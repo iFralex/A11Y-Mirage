@@ -29,6 +29,19 @@ const STEP_2 = {
   response: null,
 };
 
+const DEFAULT_USER_PROFILE = {
+  sensory: { vision: 'default', color: 'default' },
+  cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+  interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+};
+
+const DEFAULT_TELEMETRY = {
+  focusSwitchesCurrentStep: 0,
+  timeOnCurrentStep: 0,
+  errorCount: 0,
+  localCognitiveLoadScore: 0,
+};
+
 function baseState(overrides = {}) {
   return {
     systemContext: '',
@@ -38,6 +51,8 @@ function baseState(overrides = {}) {
     workflow: { taskId: null, taskName: '', steps: [] },
     currentStepIndex: 0,
     estimatedRemainingSteps: null,
+    userProfile: DEFAULT_USER_PROFILE,
+    telemetry: DEFAULT_TELEMETRY,
     ...overrides,
   };
 }
@@ -166,6 +181,124 @@ describe('WorkflowStepContainer', () => {
     );
     render(<WorkflowStepContainer />);
     expect(screen.getByRole('button', { name: 'Submit Step' })).toBeInTheDocument();
+  });
+
+  describe('Safe Mode', () => {
+    function safeModeState(overrides = {}) {
+      return baseState({
+        workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+        currentStepIndex: 0,
+        userProfile: {
+          sensory: { vision: 'default', color: 'default' },
+          cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: true },
+          interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+        },
+        ...overrides,
+      });
+    }
+
+    it('renders "Review Choices" button instead of "Submit Step" when safeMode is true', () => {
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+      expect(screen.getByRole('button', { name: 'Review Choices' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Submit Step' })).not.toBeInTheDocument();
+    });
+
+    it('clicking "Review Choices" opens a dialog when form is valid', async () => {
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Rome' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByText('Review Your Choices')).toBeInTheDocument();
+      });
+    });
+
+    it('dialog shows the selected values', async () => {
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Tokyo' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Tokyo')).toBeInTheDocument();
+      });
+    });
+
+    it('dialog has "Confirm & Proceed" and "Undo" buttons', async () => {
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Paris' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Confirm & Proceed' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+      });
+    });
+
+    it('clicking "Undo" closes the dialog without submitting', async () => {
+      processWithGemini.mockClear();
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Paris' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+      expect(processWithGemini).not.toHaveBeenCalled();
+    });
+
+    it('clicking "Confirm & Proceed" submits and calls Gemini', async () => {
+      const nextStep = {
+        taskId: 'task-abc', taskName: 'Plan a Trip', taskType: 'generic',
+        stepId: 'step-2', stepNumber: 2, estimatedRemainingSteps: 0,
+        stateSummary: '', inputs: [{ id: 'x', type: 'text_input', label: 'X' }],
+      };
+      processWithGemini.mockResolvedValueOnce(nextStep);
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      fireEvent.change(screen.getByLabelText('Destination'), { target: { value: 'Berlin' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Confirm & Proceed' })).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm & Proceed' }));
+
+      await waitFor(() => {
+        expect(processWithGemini).toHaveBeenCalled();
+      });
+    });
+
+    it('does not open dialog when form validation fails', async () => {
+      processWithGemini.mockClear();
+      useSharedStateStore.setState(safeModeState());
+      render(<WorkflowStepContainer />);
+
+      // Do not fill required 'destination' field
+      fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
+      });
+      expect(screen.queryByText('Review Your Choices')).not.toBeInTheDocument();
+    });
   });
 
   it('renders Previous Step button', () => {
