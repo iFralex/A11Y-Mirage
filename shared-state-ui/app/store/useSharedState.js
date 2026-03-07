@@ -111,3 +111,9 @@ export const useSharedStateStore = create(
     }
   )
 )
+
+// Expose the store on window for E2E test instrumentation (allows tests to
+// inject state like telemetry that is not persisted to localStorage).
+if (typeof window !== 'undefined') {
+  window.__sharedStore = useSharedStateStore;
+}
