@@ -212,8 +212,11 @@ function validateStepResponse(data) {
       throw new Error(`Invalid step response: missing required field "${field}"`);
     }
   }
-  if (!Array.isArray(data.inputs) || data.inputs.length === 0) {
-    throw new Error("Invalid step response: inputs must be a non-empty array");
+  if (!Array.isArray(data.inputs)) {
+    throw new Error("Invalid step response: inputs must be an array");
+  }
+  if (!data.isFinalStep && data.inputs.length === 0) {
+    throw new Error("Invalid step response: inputs must be non-empty on non-final steps");
   }
   if (typeof data.isFinalStep !== "boolean") {
     throw new Error("Invalid step response: isFinalStep must be a boolean");

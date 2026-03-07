@@ -92,7 +92,8 @@ export default function WorkflowStepContainer() {
   };
 
   const handleComplete = () => {
-    console.log("Workflow completed");
+    resetWorkflow();
+    setSystemContext("");
   };
 
   return (

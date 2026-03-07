@@ -8,7 +8,7 @@ import {
 const step1 = {
   stepId: 'step_1',
   stepNumber: 1,
-  questionSummary: 'Where do you want to go?',
+  stateSummary: 'Where do you want to go?',
   inputs: [{ id: 'destination', type: 'text_input', label: 'Destination' }],
   response: { destination: 'Rome' },
 }
@@ -16,7 +16,7 @@ const step1 = {
 const step2 = {
   stepId: 'step_2',
   stepNumber: 2,
-  questionSummary: 'When do you want to travel?',
+  stateSummary: 'When do you want to travel?',
   inputs: [{ id: 'date', type: 'date_input', label: 'Travel Date' }],
   response: null,
 }
@@ -24,7 +24,7 @@ const step2 = {
 const step3 = {
   stepId: 'step_3',
   stepNumber: 3,
-  questionSummary: 'What is your budget?',
+  stateSummary: 'What is your budget?',
   inputs: [{ id: 'budget', type: 'number_input', label: 'Budget' }],
   response: { budget: 500 },
 }

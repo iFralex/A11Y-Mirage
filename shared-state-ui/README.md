@@ -6,12 +6,18 @@ A Next.js (App Router) prototype implementing an accessible "Shared State" AI in
 
 **Phase 1 – Context Initialization:** On first load the user uploads a `.txt` file or pastes text that serves as the AI system context. This is persisted across browser sessions via Zustand + localStorage.
 
-**Phase 2 – AI Prompt & Task Rendering:** After saving context the user submits a free-text prompt. A Next.js Server Action calls Gemini Flash, which returns a structured JSON task. The UI renders an accessible form matching the task type (`select_option`, `boolean_confirm`, or `text_input`). The user fills in the form and clicks Conferma to confirm their response.
+**Phase 2 – AI Workflow:** After saving context the user submits a free-text prompt. A Next.js Server Action calls Gemini, which returns the first step of a dynamic multi-step workflow as structured JSON. Each step contains one or more input fields the user fills in. On submission, the completed step is sent back to Gemini which generates the next step incorporating all prior responses. The workflow continues until Gemini signals completion with `isFinalStep: true`, at which point a final summary and completion button are shown.
+
+Features:
+- Navigate backward through completed steps using the Previous Step button
+- Reset the entire workflow at any time with Reset Workflow, which returns to the context setup screen
+- Each step displays a progress indicator (~N steps remaining) and a state summary of decisions made so far
+- Generated questions and labels adapt to the language of the user's input
 
 ## Prerequisites
 
 - Node.js 18+
-- A Google Gemini API key
+- A Google Gemini API key with access to the `gemini-2.5-flash` model
 
 ## Setup
 
@@ -56,6 +62,8 @@ Note: E2E tests skip automatically (exit 0) in Alpine/musl environments where th
 npm run lint
 ```
 
-## Error logging
+## Logging
 
 Gemini API errors after all retries are appended to `logs/gemini-errors.log`.
+
+Successful workflow interactions are appended to `logs/workflow-history.log`. Each entry is a JSON object with fields: `timestamp`, `taskId`, `stepNumber`, `userResponse`, `modelResponse`.

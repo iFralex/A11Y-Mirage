@@ -44,8 +44,5 @@ temp/
 **/playwright-report/
 **/test-results/
 
-# ralphex progress logs
-.ralphex/progress/
-
-# ralphex progress logs
-.ralphex/progress/
+# Application logs
+**/logs/

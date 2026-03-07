@@ -97,7 +97,7 @@ describe("processWithGemini", () => {
       steps: [
         {
           stepNumber: 1,
-          questionSummary: "Where do you want to go?",
+          stateSummary: "Where do you want to go?",
           response: { destination: "Rome" },
         },
       ],

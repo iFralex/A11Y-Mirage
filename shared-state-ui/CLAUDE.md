@@ -22,7 +22,7 @@ PLAYWRIGHT_BROWSER_AVAILABLE=true npx playwright test  # force-run E2E
 
 ## State management (Zustand + localStorage)
 
-The Zustand store (`app/store/useSharedState.js`) uses `persist` middleware with the key `'shared-state-storage'`. Only `systemContext` and `taskData` are persisted (via `partialize`); `isLoading` and `error` are excluded to avoid stuck states across page reloads.
+The Zustand store (`app/store/useSharedState.js`) uses `persist` middleware with the key `'shared-state-storage'`. The following fields are persisted (via `partialize`): `systemContext`, `taskData`, `workflow`, `currentStepIndex`, `estimatedRemainingSteps`. The fields `isLoading` and `error` are excluded to avoid stuck states across page reloads.
 
 The E2E tests seed this key in localStorage before page load using `page.addInitScript`. Any future store shape changes must update both the `partialize` config and the E2E seed objects.
 
@@ -38,8 +38,29 @@ The E2E tests seed this key in localStorage before page load using `page.addInit
 
 `jsconfig.json` maps `@/*` to `./*` (the `shared-state-ui/` project root). shadcn/ui components live at `components/ui/` (not `app/components/`). Application components live at `app/components/`.
 
+## Workflow architecture
+
+`app/page.jsx` is a thin async Server Component that renders `app/main.jsx`. `main.jsx` is a Client Component (`"use client"`) that drives the top-level flow:
+- No `systemContext` → render `ContextSetup`
+- `systemContext` set but no workflow steps → render the initial prompt form; on submit call `processWithGemini` with an empty workflow and add the first step via `addStep`
+- Workflow steps present → render `WorkflowStepContainer`
+- Always renders `WorkflowDebugConsole` (visible only in `NODE_ENV=development`)
+
+`WorkflowStepContainer` owns step submission: reads the current step from the store, calls `DynamicStepRenderer` via an imperative ref to validate and collect responses, then calls `processWithGemini(userInput, systemContext, updatedWorkflow)` to obtain the next step.
+
+`DynamicStepRenderer` uses `forwardRef` + `useImperativeHandle` to expose two methods:
+- `validate()` — runs required-field validation, sets inline errors, returns boolean
+- `getResponses()` — returns the current `{ inputId: value }` map
+
+`app/utils/workflowHelpers.js` exports pure functions used when building the LLM prompt:
+- `buildConversationMemory(steps)` — formats step history (uses `stateSummary` field, not `questionSummary`)
+
+The Server Action `processWithGemini` signature is `(userInput, systemContext, workflowState)`. The E2E mock intercepts POST requests with the `next-action` header; the mock payload must include all three arguments in the React Flight format.
+
+The LLM response schema requires `isFinalStep` (boolean). A final step (`isFinalStep: true`) may have an empty `inputs` array — validation does not reject this. The `finalActionLabel` field is only valid when `isFinalStep` is true.
+
 ## Key conventions
 
 - Component tests use `@testing-library/react` + `vitest`. Mock Zustand state with `useSharedStateStore.setState({...})` in `beforeEach`.
-- Always reset the full store state (`systemContext`, `taskData`, `isLoading`, `error`) in `beforeEach` to prevent cross-test leakage.
+- Always reset the full store state in `beforeEach` to prevent cross-test leakage: `systemContext`, `taskData`, `isLoading`, `error`, `workflow` (to `{ taskId: null, taskName: "", steps: [] }`), `currentStepIndex` (to `0`), and `estimatedRemainingSteps` (to `null`).
 - FileReader stubs (`vi.stubGlobal`) must be cleaned up in `afterEach(() => vi.unstubAllGlobals())`.

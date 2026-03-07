@@ -271,9 +271,8 @@ test.describe('Test 3: Step submission generates next step', () => {
     // Fill in the text input
     await page.fill('input[id="destination"]', 'Rome');
 
-    // Select an option for travel_type
-    const select = page.locator('select[id="travel_type"]');
-    await select.selectOption('Train');
+    // Select an option for travel_type (rendered as RadioGroup, not native select)
+    await page.getByLabel('Train').click();
 
     // Click Submit Step
     await page.click('button:has-text("Submit Step")');

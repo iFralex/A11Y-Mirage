@@ -1,7 +1,7 @@
 /**
  * Builds a formatted conversation memory string from workflow steps.
  * Format:
- *   Step N Question: <questionSummary>
+ *   Step N Question: <stateSummary>
  *   Step N Response: <response JSON>
  *
  * @param {Array} steps - Array of step objects from workflow state
@@ -12,7 +12,7 @@ export function buildConversationMemory(steps) {
 
   return steps
     .map((step) => {
-      const question = `Step ${step.stepNumber} Question: ${step.questionSummary}`;
+      const question = `Step ${step.stepNumber} Question: ${step.stateSummary}`;
       if (step.response) {
         const response = `Step ${step.stepNumber} Response: ${JSON.stringify(step.response)}`;
         return question + "\n" + response;

@@ -508,8 +508,7 @@ describe('WorkflowStepContainer', () => {
     expect(screen.queryByRole('button', { name: 'Submit Step' })).not.toBeInTheDocument();
   });
 
-  it('logs "Workflow completed" to console when completion button is clicked', () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  it('resets workflow and clears system context when completion button is clicked', () => {
     const finalStep = {
       stepId: 'step-final',
       stepNumber: 3,
@@ -524,14 +523,16 @@ describe('WorkflowStepContainer', () => {
     };
     useSharedStateStore.setState(
       baseState({
+        systemContext: 'some context',
         workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
         currentStepIndex: 0,
       })
     );
     render(<WorkflowStepContainer />);
     fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
-    expect(consoleSpy).toHaveBeenCalledWith('Workflow completed');
-    consoleSpy.mockRestore();
+    const state = useSharedStateStore.getState();
+    expect(state.workflow.steps).toHaveLength(0);
+    expect(state.systemContext).toBe('');
   });
 
   it('submit does not call Gemini when validation fails', async () => {
