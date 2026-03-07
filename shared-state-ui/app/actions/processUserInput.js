@@ -51,6 +51,9 @@ const responseSchema = {
         required: ["id", "type", "label"],
       },
     },
+    isFinalStep: { type: SchemaType.BOOLEAN },
+    finalActionLabel: { type: SchemaType.STRING },
+    finalSummary: { type: SchemaType.STRING },
   },
   required: [
     "taskId",
@@ -61,6 +64,7 @@ const responseSchema = {
     "estimatedRemainingSteps",
     "stateSummary",
     "inputs",
+    "isFinalStep",
   ],
 };
 
@@ -107,6 +111,7 @@ const REQUIRED_STEP_FIELDS = [
   "estimatedRemainingSteps",
   "stateSummary",
   "inputs",
+  "isFinalStep",
 ];
 
 function validateStepResponse(data) {
@@ -117,6 +122,14 @@ function validateStepResponse(data) {
   }
   if (!Array.isArray(data.inputs) || data.inputs.length === 0) {
     throw new Error("Invalid step response: inputs must be a non-empty array");
+  }
+  if (typeof data.isFinalStep !== "boolean") {
+    throw new Error("Invalid step response: isFinalStep must be a boolean");
+  }
+  if (data.finalActionLabel !== undefined && !data.isFinalStep) {
+    throw new Error(
+      "Invalid step response: finalActionLabel is only allowed when isFinalStep is true"
+    );
   }
 }
 

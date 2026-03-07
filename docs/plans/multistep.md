@@ -30,7 +30,7 @@ The final system behaves as an **AI Agent UI**, enabling users to complete compl
 
 ---
 
-# Task 1: Redesign Structured Output Schema
+### Task 1: Redesign Structured Output Schema
 
 - [x] Open `app/actions/processUserInput.js`
 - [x] Replace the previous response schema with a **generic workflow schema**
@@ -77,7 +77,7 @@ required?: boolean
 
 ---
 
-# Task 2: Introduce Workflow State Model
+### Task 2: Introduce Workflow State Model
 
 - [x] Open `app/store/useSharedState.js`
 - [x] Add new state variables:
@@ -120,7 +120,7 @@ setEstimatedSteps(n)
 
 ---
 
-# Task 3: Build Step History Management
+### Task 3: Build Step History Management
 
 - [x] Create file `app/utils/workflowHelpers.js`
 
@@ -146,7 +146,7 @@ Step 2 Response
 
 ---
 
-# Task 4: Update Server Action for Step-based Workflow
+### Task 4: Update Server Action for Step-based Workflow
 
 - [x] Open `processUserInput.js`
 - [x] Modify function signature:
@@ -181,7 +181,7 @@ logs/gemini-errors.log
 
 ---
 
-# Task 5: Create Generic Multi-Input Renderer
+### Task 5: Create Generic Multi-Input Renderer
 
 - [x] Replace `DynamicTaskRenderer.jsx`
 
@@ -227,7 +227,7 @@ slider
 
 ---
 
-# Task 6: Support Multiple Inputs per Step
+### Task 6: Support Multiple Inputs per Step
 
 - [x] Create local component state:
 
@@ -259,7 +259,7 @@ Example:
 
 ---
 
-# Task 7: Build Step Container UI
+### Task 7: Build Step Container UI
 
 - [x] Update `DynamicTaskContainer.jsx`
 
@@ -294,7 +294,7 @@ Previous Step
 
 ---
 
-# Task 8: Implement Step Navigation
+### Task 8: Implement Step Navigation
 
 - [x] Add previous step button
 
@@ -313,7 +313,7 @@ if(currentStepIndex > 0)
 
 ---
 
-# Task 9: Step Submission Logic
+### Task 9: Step Submission Logic
 
 - [x] On submit:
 
@@ -330,7 +330,7 @@ if(currentStepIndex > 0)
 
 ---
 
-# Task 10: Update Main Page Logic
+### Task 10: Update Main Page Logic
 
 - [x] Modify `app/page.js`
 
@@ -358,7 +358,7 @@ call Gemini with empty workflow
 
 ---
 
-# Task 11: Session Persistence & Reset
+### Task 11: Session Persistence & Reset
 
 - [x] Zustand persist already enabled
 
@@ -381,7 +381,7 @@ setSystemContext("")
 
 ---
 
-# Task 12: Accessibility Improvements
+### Task 12: Accessibility Improvements
 
 - [x] Ensure:
 
@@ -399,7 +399,7 @@ fieldset for grouped inputs
 
 ---
 
-# Task 13: Logging System
+### Task 13: Logging System
 
 - [x] Create file:
 
@@ -423,7 +423,7 @@ modelResponse
 
 ---
 
-# Task 14: End-to-End Workflow Testing
+### Task 14: End-to-End Workflow Testing
 
 - [x] Update `e2e/user-flow.spec.js`
 
@@ -463,7 +463,7 @@ npx playwright test
 
 ---
 
-# Task 15: Workflow Debug Console
+### Task 15: Workflow Debug Console
 
 - [x] Add optional debug panel
 
@@ -483,3 +483,135 @@ process.env.NODE_ENV === "development"
 ```
 
 - [x] Mark completed
+
+
+### Task 16: Extend LLM Structured Output Schema
+
+- [x] Open `app/actions/processUserInput.js`
+- [x] Locate the structured output schema used for validating LLM responses
+- [x] Add a new boolean field `isFinalStep`
+- [x] Add an optional string field `finalActionLabel`
+- [x] Add an optional string field `finalSummary`
+- [x] Ensure `isFinalStep` is always present in the schema
+- [x] Ensure `finalActionLabel` is only required when `isFinalStep = true`
+- [x] Ensure `finalSummary` remains optional
+- [x] Update any TypeScript types or interfaces related to the schema
+- [x] Update validation logic to prevent invalid combinations (for example `finalActionLabel` when `isFinalStep=false`)
+- [x] Test schema validation with a mock LLM response
+- [x] Confirm the application correctly parses the new fields
+
+---
+
+### Task 17: Add Final Step UI Handling
+
+- [ ] Open `WorkflowStepContainer.jsx`
+- [ ] Identify where the current step is rendered
+- [ ] Add a conditional check for `step.isFinalStep`
+- [ ] Render a final summary section when `step.finalSummary` exists
+- [ ] Create a container component for the final summary
+- [ ] Display the summary text inside that container
+- [ ] Add a completion button below the summary
+- [ ] Set the button label to `step.finalActionLabel` if available
+- [ ] Add a fallback label `"Complete Task"` when `finalActionLabel` is missing
+- [ ] Attach a click handler to the completion button
+- [ ] Implement the click handler to log `"Workflow completed"` in the console
+- [ ] Verify the UI renders correctly for both normal steps and final steps
+
+---
+
+### Task 18: Prevent Infinite Step Generation
+
+- [ ] Open the prompt template used to instruct the LLM
+- [ ] Add a rule stating that workflows must contain the minimum number of steps necessary
+- [ ] Add a rule stating that unnecessary follow-up questions must be avoided
+- [ ] Add a rule stating that the model should stop generating steps when enough information has been collected
+- [ ] Add a rule allowing workflows to complete early when possible
+- [ ] Save the updated prompt template
+- [ ] Test the workflow with a simple task
+- [ ] Verify that the workflow stops when all required information is collected
+
+---
+
+### Task 19: Improve Context Awareness
+
+- [ ] Open the prompt instructions used by the LLM
+- [ ] Add an instruction telling the model to extract all available information from the provided context
+- [ ] Add a rule stating that known information must not be requested again
+- [ ] Add a rule stating that known information should instead be referenced in the question
+- [ ] Add an example of correct context usage in the prompt
+- [ ] Add an example of incorrect behavior (asking already known information)
+- [ ] Save the updated prompt
+- [ ] Test the system with a context that includes multiple known facts
+- [ ] Confirm that the generated questions reference those facts
+
+---
+
+### Task 20: Enforce Context Referencing in Step Questions
+
+- [ ] Open the LLM prompt template
+- [ ] Add a rule requiring step questions to reference relevant context facts
+- [ ] Add a short explanation of why context referencing improves clarity
+- [ ] Provide an example of a weak generic question
+- [ ] Provide an improved question referencing the context
+- [ ] Save the updated prompt template
+- [ ] Test the system using a context containing constraints or preferences
+- [ ] Verify that generated questions explicitly reference those constraints
+
+---
+
+### Task 21: Avoid Redundant Questions
+
+- [ ] Open the LLM prompt instructions
+- [ ] Add a rule stating that definitive facts in the context must be treated as confirmed
+- [ ] Add a rule preventing the model from asking the user to repeat known values
+- [ ] Provide an example context containing known numeric information
+- [ ] Provide an example of a forbidden redundant question
+- [ ] Provide an example of a correct question that builds on the known information
+- [ ] Save the updated prompt
+- [ ] Run a test workflow containing predefined context values
+- [ ] Confirm that redundant questions are not generated
+
+---
+
+### Task 22: Adapt Workflow Language to the User
+
+- [ ] Open the prompt template responsible for generating workflow steps
+- [ ] Add an instruction to detect the language of the user input
+- [ ] Add an instruction to generate all user-facing text in the detected language
+- [ ] Specify that this applies to `taskName`
+- [ ] Specify that this applies to step questions
+- [ ] Specify that this applies to input labels
+- [ ] Specify that this applies to `stateSummary`
+- [ ] Specify that this applies to `finalActionLabel`
+- [ ] Save the updated prompt template
+- [ ] Test the system using an Italian input
+- [ ] Test the system using an English input
+- [ ] Verify that the generated workflow language matches the input language
+
+---
+
+### Task 23: Allow Single-Step Workflows
+
+- [ ] Open the LLM prompt template
+- [ ] Add an instruction explaining that some tasks require only one step
+- [ ] Add a rule allowing the workflow to finish immediately when appropriate
+- [ ] Add instructions for the model to set `isFinalStep = true` in that case
+- [ ] Add instructions for the model to set `estimatedRemainingSteps = 0`
+- [ ] Add an example of a valid single-step workflow
+- [ ] Save the updated prompt template
+- [ ] Test the system with a task that can be completed in one decision
+- [ ] Verify that the model generates a single-step workflow
+
+---
+
+### Task 24: Improve State Summary Generation
+
+- [ ] Open the prompt instructions related to `stateSummary`
+- [ ] Add a rule stating that the summary must describe what decisions have already been made
+- [ ] Add a rule stating that the summary must describe what the current step resolves
+- [ ] Add a guideline to keep summaries concise and readable
+- [ ] Add an example of a weak unclear summary
+- [ ] Add an improved example summarizing previous decisions
+- [ ] Save the updated prompt
+- [ ] Test the system with a multi-step workflow
+- [ ] Verify that each step produces a meaningful state summary

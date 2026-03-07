@@ -38,6 +38,7 @@ const validStepData = {
   stepNumber: 1,
   estimatedRemainingSteps: 3,
   stateSummary: "Starting travel planning workflow",
+  isFinalStep: false,
   inputs: [
     {
       id: "destination",
@@ -47,6 +48,16 @@ const validStepData = {
       required: true,
     },
   ],
+};
+
+const validFinalStepData = {
+  ...validStepData,
+  stepId: "step_4",
+  stepNumber: 4,
+  estimatedRemainingSteps: 0,
+  isFinalStep: true,
+  finalActionLabel: "Book Trip",
+  finalSummary: "You are booking a 7-day trip to Rome departing June 1st.",
 };
 
 describe("processWithGemini", () => {
@@ -157,6 +168,65 @@ describe("processWithGemini", () => {
     expect(fs.default.appendFileSync).toHaveBeenCalledWith(
       expect.stringContaining("logs/gemini-errors.log"),
       expect.stringContaining("inputs")
+    );
+  });
+
+  it("correctly parses a final step response with isFinalStep=true", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validFinalStepData) },
+    });
+
+    const result = await processWithGemini("confirm", "ctx");
+
+    expect(result.isFinalStep).toBe(true);
+    expect(result.finalActionLabel).toBe("Book Trip");
+    expect(result.finalSummary).toBe(
+      "You are booking a 7-day trip to Rome departing June 1st."
+    );
+  });
+
+  it("accepts a normal step response with isFinalStep=false and no finalActionLabel", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    const result = await processWithGemini("start", "ctx");
+
+    expect(result.isFinalStep).toBe(false);
+    expect(result.finalActionLabel).toBeUndefined();
+    expect(result.finalSummary).toBeUndefined();
+  });
+
+  it("retries and logs error when isFinalStep is missing", async () => {
+    const invalidData = { ...validStepData };
+    delete invalidData.isFinalStep;
+
+    mockGenerateContent
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } })
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } });
+
+    await expect(processWithGemini("prompt", "ctx")).rejects.toThrow(
+      "Errore di connessione al modello."
+    );
+    expect(fs.default.appendFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("logs/gemini-errors.log"),
+      expect.stringContaining("isFinalStep")
+    );
+  });
+
+  it("retries and logs error when finalActionLabel is set but isFinalStep is false", async () => {
+    const invalidData = { ...validStepData, isFinalStep: false, finalActionLabel: "Done" };
+
+    mockGenerateContent
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } })
+      .mockResolvedValueOnce({ response: { text: () => JSON.stringify(invalidData) } });
+
+    await expect(processWithGemini("prompt", "ctx")).rejects.toThrow(
+      "Errore di connessione al modello."
+    );
+    expect(fs.default.appendFileSync).toHaveBeenCalledWith(
+      expect.stringContaining("logs/gemini-errors.log"),
+      expect.stringContaining("finalActionLabel")
     );
   });
 });
