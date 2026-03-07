@@ -132,7 +132,22 @@ Example of a WEAK generic question (do NOT do this):
 
 Example of an IMPROVED context-referencing question (do this instead):
   Context contains: "User has a budget of €500 and prefers window seats"
-  Good question: "You prefer window seats — shall we prioritise window-seat availability within your €500 budget, or is flexibility on seat type acceptable?"`;
+  Good question: "You prefer window seats — shall we prioritise window-seat availability within your €500 budget, or is flexibility on seat type acceptable?"
+
+Redundant question prevention rules (CRITICAL - follow strictly):
+- Definitive facts stated in the System Context or Workflow History must be treated as CONFIRMED. Do not ask the user to verify, confirm, or repeat them.
+- NEVER ask the user to re-enter a value that is already explicitly stated. If the context says "budget is €300", do not ask "What is your budget?".
+- When a known value is required to progress the workflow, use it directly and build the next question on top of it — do not waste a step collecting it again.
+
+Example context with known numeric information:
+  Context contains: "User wants to book 3 nights in Milan with a maximum spend of €200 per night"
+
+Example of a FORBIDDEN redundant question (do NOT do this):
+  Bad question: "How many nights would you like to stay?" — the number of nights (3) is already confirmed in the context.
+  Bad question: "What is your nightly budget?" — the budget (€200/night) is already confirmed in the context.
+
+Example of a CORRECT question that builds on the known information (do this instead):
+  Good question: "For your 3-night stay in Milan (up to €200/night), which check-in date works best for you?" — uses the confirmed facts and only asks for what is genuinely unknown.`;
 
 
 const REQUIRED_STEP_FIELDS = [

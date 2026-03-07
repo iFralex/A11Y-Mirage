@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Home from '../app/page';
+import Home from '../app/main';
 import { useSharedStateStore } from '../app/store/useSharedState';
 
 vi.mock('../app/actions/processUserInput', () => ({

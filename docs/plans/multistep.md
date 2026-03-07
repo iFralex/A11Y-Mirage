@@ -561,15 +561,15 @@ process.env.NODE_ENV === "development"
 
 ### Task 21: Avoid Redundant Questions
 
-- [ ] Open the LLM prompt instructions
-- [ ] Add a rule stating that definitive facts in the context must be treated as confirmed
-- [ ] Add a rule preventing the model from asking the user to repeat known values
-- [ ] Provide an example context containing known numeric information
-- [ ] Provide an example of a forbidden redundant question
-- [ ] Provide an example of a correct question that builds on the known information
-- [ ] Save the updated prompt
-- [ ] Run a test workflow containing predefined context values
-- [ ] Confirm that redundant questions are not generated
+- [x] Open the LLM prompt instructions
+- [x] Add a rule stating that definitive facts in the context must be treated as confirmed
+- [x] Add a rule preventing the model from asking the user to repeat known values
+- [x] Provide an example context containing known numeric information
+- [x] Provide an example of a forbidden redundant question
+- [x] Provide an example of a correct question that builds on the known information
+- [x] Save the updated prompt
+- [x] Run a test workflow containing predefined context values
+- [x] Confirm that redundant questions are not generated
 
 ---
 
