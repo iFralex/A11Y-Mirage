@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { processWithGemini } from '@/app/actions/processUserInput';
 import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
+import { generateSemanticSummary, speakText, cancelSpeech } from '@/app/utils/semanticSpeech';
 
 function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
   return (
@@ -71,6 +72,31 @@ export default function WorkflowStepContainer() {
       setHighLoadAlertShown(true);
     }
   }, [telemetry.localCognitiveLoadScore, highLoadAlertShown, updateUserProfile]);
+
+  useEffect(() => {
+    if (
+      currentStep &&
+      !isLoading &&
+      !currentStep.isFinalStep &&
+      userProfile.interaction.preferredModality === 'voice'
+    ) {
+      const summary = generateSemanticSummary(currentStep);
+      speakText(summary);
+    }
+    return () => {
+      cancelSpeech();
+    };
+  }, [currentStep, isLoading, userProfile.interaction.preferredModality]);
+
+  useEffect(() => {
+    const handleInteraction = () => cancelSpeech();
+    window.addEventListener('keydown', handleInteraction);
+    window.addEventListener('mousedown', handleInteraction);
+    return () => {
+      window.removeEventListener('keydown', handleInteraction);
+      window.removeEventListener('mousedown', handleInteraction);
+    };
+  }, []);
 
   const handleSubmit = async () => {
     if (!stepRendererRef.current) return;

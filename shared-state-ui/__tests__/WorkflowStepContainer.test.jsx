@@ -721,4 +721,119 @@ describe('WorkflowStepContainer', () => {
     });
     expect(processWithGemini).not.toHaveBeenCalled();
   });
+
+  describe('speech synthesis', () => {
+    let mockCancel;
+    let mockSpeak;
+
+    beforeEach(() => {
+      mockCancel = vi.fn();
+      mockSpeak = vi.fn();
+      global.window.speechSynthesis = { cancel: mockCancel, speak: mockSpeak };
+      function MockUtterance(text) { this.text = text; }
+      global.window.SpeechSynthesisUtterance = MockUtterance;
+    });
+
+    it('speaks semantic summary on mount when preferredModality is voice', async () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          isLoading: false,
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+            interaction: { preferredModality: 'voice', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      await waitFor(() => {
+        expect(mockSpeak).toHaveBeenCalled();
+      });
+      const utterance = mockSpeak.mock.calls[0][0];
+      expect(utterance.text).toContain('Step 1');
+      expect(utterance.text).toContain('Gathering initial trip details.');
+    });
+
+    it('does not speak when preferredModality is not voice', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+            interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(mockSpeak).not.toHaveBeenCalled();
+    });
+
+    it('cancels speech on keydown event', async () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+            interaction: { preferredModality: 'voice', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      mockCancel.mockClear();
+      fireEvent.keyDown(window, { key: 'Tab' });
+      expect(mockCancel).toHaveBeenCalled();
+    });
+
+    it('cancels speech on mousedown event', async () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+            interaction: { preferredModality: 'voice', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      mockCancel.mockClear();
+      fireEvent.mouseDown(window);
+      expect(mockCancel).toHaveBeenCalled();
+    });
+
+    it('does not speak on final step', () => {
+      const finalStep = {
+        stepId: 'step-final',
+        stepNumber: 3,
+        taskId: 'task-abc',
+        taskName: 'Plan a Trip',
+        stateSummary: 'Done.',
+        isFinalStep: true,
+        finalSummary: 'Summary.',
+        finalActionLabel: 'Finish',
+        inputs: [],
+        response: null,
+      };
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+          currentStepIndex: 0,
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: false },
+            interaction: { preferredModality: 'voice', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(mockSpeak).not.toHaveBeenCalled();
+    });
+  });
 });
