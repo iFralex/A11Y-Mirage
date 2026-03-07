@@ -521,14 +521,14 @@ process.env.NODE_ENV === "development"
 
 ### Task 18: Prevent Infinite Step Generation
 
-- [ ] Open the prompt template used to instruct the LLM
-- [ ] Add a rule stating that workflows must contain the minimum number of steps necessary
-- [ ] Add a rule stating that unnecessary follow-up questions must be avoided
-- [ ] Add a rule stating that the model should stop generating steps when enough information has been collected
-- [ ] Add a rule allowing workflows to complete early when possible
-- [ ] Save the updated prompt template
-- [ ] Test the workflow with a simple task
-- [ ] Verify that the workflow stops when all required information is collected
+- [x] Open the prompt template used to instruct the LLM
+- [x] Add a rule stating that workflows must contain the minimum number of steps necessary
+- [x] Add a rule stating that unnecessary follow-up questions must be avoided
+- [x] Add a rule stating that the model should stop generating steps when enough information has been collected
+- [x] Add a rule allowing workflows to complete early when possible
+- [x] Save the updated prompt template
+- [x] Test the workflow with a simple task
+- [x] Verify that the workflow stops when all required information is collected
 
 ---
 

@@ -100,7 +100,13 @@ Rules:
   - date_input: date selection
   - file_upload: file attachment
   - rating: 1-5 star rating
-  - slider: numeric range selection`;
+  - slider: numeric range selection
+
+Step minimisation rules (CRITICAL - follow strictly):
+- Use the MINIMUM number of steps necessary to complete the task. Do not add extra steps that are not strictly required.
+- Do NOT ask unnecessary follow-up questions. If information can be inferred or is already known, skip asking for it.
+- Stop generating steps as soon as enough information has been collected to complete the task. Do not continue collecting data beyond what is needed.
+- Complete the workflow early whenever possible. Set isFinalStep=true and estimatedRemainingSteps=0 the moment all required information is in hand.`;
 
 const REQUIRED_STEP_FIELDS = [
   "taskId",

@@ -214,6 +214,20 @@ describe("processWithGemini", () => {
     );
   });
 
+  it("prompt includes step minimisation rules to prevent infinite step generation", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      response: { text: () => JSON.stringify(validStepData) },
+    });
+
+    await processWithGemini("simple task", "ctx");
+
+    const callArg = mockGenerateContent.mock.calls[0][0];
+    expect(callArg).toContain("MINIMUM number of steps");
+    expect(callArg).toContain("unnecessary follow-up questions");
+    expect(callArg).toContain("Stop generating steps");
+    expect(callArg).toContain("Complete the workflow early");
+  });
+
   it("retries and logs error when finalActionLabel is set but isFinalStep is false", async () => {
     const invalidData = { ...validStepData, isFinalStep: false, finalActionLabel: "Done" };
 
