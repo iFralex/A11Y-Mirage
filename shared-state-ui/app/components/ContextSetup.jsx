@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { processWithGemini } from '@/app/actions/processUserInput';
+import { Input } from '@/components/ui/input';
 
 const ACCESSIBILITY_ONBOARDING_CONTEXT = `You are an accessibility onboarding agent. Ask the user one question at a time to determine their visual, cognitive, and motor needs. Ask about voice synthesis, contrast, need for detailed explanations, and safe mode. Use simple inputs (boolean_confirm, select_option). End the workflow when you have enough data.
 
@@ -22,7 +23,9 @@ Use these exact input IDs (do not deviate):
 
 export default function ContextSetup() {
   const [localContext, setLocalContext] = useState('');
+  const [localApiKey, setLocalApiKey] = useState('');
   const setSystemContext = useSharedStateStore((state) => state.setSystemContext);
+  const setApiKey = useSharedStateStore((s) => s.setGeminiApiKey)
   const addStep = useSharedStateStore((state) => state.addStep);
   const setLoading = useSharedStateStore((state) => state.setLoading);
   const setError = useSharedStateStore((state) => state.setError);
@@ -55,6 +58,8 @@ export default function ContextSetup() {
 
   const handleSave = () => {
     setSystemContext(localContext);
+    if (localApiKey.trim())
+      setApiKey(localApiKey);
   };
 
   const handleStartAccessibilityOnboarding = async () => {
@@ -100,6 +105,21 @@ export default function ContextSetup() {
             onChange={(e) => setLocalContext(e.target.value)}
             placeholder="Incolla qui la cronologia della conversazione o il contesto..."
             rows={10}
+          />
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Nota: il contesto caricato sarà utilizzato come base per tutte le interazioni future. Assicurati che includa tutte le informazioni rilevanti che desider
+        </div>
+        <div>
+          <label htmlFor="api-key-input" className="block text-sm font-medium mb-1">
+            Inserisci la tua Gemini API Key (opzionale)
+          </label>
+          <Input
+            id="api-key-input"
+            type="password"
+            value={localApiKey}
+            onChange={(e) => setLocalApiKey(e.target.value)}
+            placeholder="Inserisci la tua Gemini API Key (opzionale)"
           />
         </div>
         <Button onClick={handleSave} disabled={!localContext.trim()}>

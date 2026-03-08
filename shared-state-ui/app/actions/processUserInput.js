@@ -5,8 +5,6 @@ import fs from "fs";
 import path from "path";
 import { buildConversationMemory } from "../utils/workflowHelpers";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 const responseSchema = {
   type: SchemaType.OBJECT,
   properties: {
@@ -74,14 +72,6 @@ const responseSchema = {
     "isFinalStep",
   ],
 };
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-    responseSchema,
-  },
-});
 
 const WORKFLOW_INSTRUCTIONS = `You are an AI workflow engine. Your role is to guide the user through a multi-step workflow to accomplish their goal.
 
@@ -245,7 +235,23 @@ function validateStepResponse(data) {
   }
 }
 
-export async function processWithGemini(userInput, systemContext, workflowState, accessibilityContext = {}) {
+export async function processWithGemini(userInput, systemContext, workflowState, accessibilityContext = {}, clientApiKey = "") {
+  const apiKey = process.env.GEMINI_API_KEY || clientApiKey;
+
+  if (!apiKey) {
+    throw new Error("Gemini API key missing");
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema,
+    },
+  });
+
   let prompt = WORKFLOW_INSTRUCTIONS + "\n\n";
 
   if (systemContext) {

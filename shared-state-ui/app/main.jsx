@@ -11,6 +11,7 @@ import { processWithGemini } from "@/app/actions/processUserInput";
 
 export default function Main() {
   const systemContext = useSharedStateStore((state) => state.systemContext);
+  const apiKey = useSharedStateStore((s) => s.geminiApiKey);
   const workflow = useSharedStateStore((state) => state.workflow);
   const isLoading = useSharedStateStore((state) => state.isLoading);
   const error = useSharedStateStore((state) => state.error);
@@ -36,7 +37,7 @@ export default function Main() {
     setLoading(true);
     try {
       const emptyWorkflow = { taskId: null, taskName: "", steps: [] };
-      const firstStep = await processWithGemini(userPrompt, systemContext, emptyWorkflow, { userProfile, telemetry });
+      const firstStep = await processWithGemini(userPrompt, systemContext, emptyWorkflow, { userProfile, telemetry }, apiKey);
       addStep(firstStep);
       setEstimatedSteps(firstStep.estimatedRemainingSteps);
     } catch (err) {
