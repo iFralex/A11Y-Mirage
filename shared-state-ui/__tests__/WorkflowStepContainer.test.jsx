@@ -295,7 +295,7 @@ describe('WorkflowStepContainer', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Review Choices' }));
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
+        expect(screen.getByText('This field is required')).toBeInTheDocument();
       });
       expect(screen.queryByText('Review Your Choices')).not.toBeInTheDocument();
     });
@@ -833,6 +833,127 @@ describe('WorkflowStepContainer', () => {
     });
     await waitFor(() => {
       expect(screen.queryByText('Support Activated')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Adaptive Keyboard Hints', () => {
+    it('shows keyboard hint when localCognitiveLoadScore exceeds 6', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 7 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(screen.getByText('Keyboard Shortcuts Available')).toBeInTheDocument();
+      expect(screen.getByText(/Alt \+ F/)).toBeInTheDocument();
+    });
+
+    it('does not show keyboard hint when localCognitiveLoadScore is 6 or below and safeMode is off', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 6 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(screen.queryByText('Keyboard Shortcuts Available')).not.toBeInTheDocument();
+    });
+
+    it('shows keyboard hint when safeMode is true regardless of cognitive load score', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 0 },
+          userProfile: {
+            sensory: { vision: 'default', color: 'default' },
+            cognitive: { maxInputsPerStep: null, requiresDecisionSupport: false, safeMode: true },
+            interaction: { preferredModality: 'visual', progressiveDisclosure: false },
+          },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(screen.getByText('Keyboard Shortcuts Available')).toBeInTheDocument();
+    });
+
+    it('keyboard hint uses aria-live="polite"', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 8 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      const hintAlert = screen.getByText('Keyboard Shortcuts Available').closest('[aria-live]');
+      expect(hintAlert).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it('hides keyboard hint when cognitive load drops below threshold and safeMode is off', async () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 8 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(screen.getByText('Keyboard Shortcuts Available')).toBeInTheDocument();
+
+      act(() => {
+        useSharedStateStore.setState(
+          baseState({
+            workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+            currentStepIndex: 0,
+            telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 3 },
+          })
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Keyboard Shortcuts Available')).not.toBeInTheDocument();
+      });
+    });
+
+    it('does not show keyboard hint on final step', () => {
+      const finalStep = {
+        stepId: 'step-final',
+        stepNumber: 3,
+        taskId: 'task-abc',
+        taskName: 'Plan a Trip',
+        stateSummary: 'Done.',
+        isFinalStep: true,
+        finalSummary: 'Summary.',
+        finalActionLabel: 'Finish',
+        inputs: [],
+        response: null,
+      };
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [finalStep] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 9 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      expect(screen.queryByText('Keyboard Shortcuts Available')).not.toBeInTheDocument();
+    });
+
+    it('hint mentions Alt + R and Alt + H alongside Alt + F', () => {
+      useSharedStateStore.setState(
+        baseState({
+          workflow: { taskId: 'task-abc', taskName: 'Plan a Trip', steps: [STEP_1] },
+          currentStepIndex: 0,
+          telemetry: { ...DEFAULT_TELEMETRY, localCognitiveLoadScore: 7 },
+        })
+      );
+      render(<WorkflowStepContainer />);
+      const desc = screen.getByText(/Alt \+ F/);
+      expect(desc.textContent).toContain('Alt + R');
+      expect(desc.textContent).toContain('Alt + H');
     });
   });
 

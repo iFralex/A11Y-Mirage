@@ -229,6 +229,15 @@ export default function WorkflowStepContainer() {
         </Alert>
       )}
 
+      {(telemetry.localCognitiveLoadScore > 6 || userProfile.cognitive.safeMode) && currentStep && !currentStep.isFinalStep && (
+        <Alert aria-live="polite" className="mb-4">
+          <AlertTitle>Keyboard Shortcuts Available</AlertTitle>
+          <AlertDescription>
+            Tip: Press Alt + F to jump to the suggested option. Alt + R to re-read the current step. Alt + H for all shortcuts.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Dialog open={reviewDialogOpen} onOpenChange={(open) => { setReviewDialogOpen(open); if (!open) setPendingResponses(null); }}>
         <DialogContent>
           <DialogHeader>
