@@ -112,6 +112,122 @@ describe('generateSemanticSummary', () => {
   });
 });
 
+describe('generateSemanticSummary — adaptive narration levels', () => {
+  const baseStep = {
+    stepNumber: 2,
+    stateSummary: 'Selecting your cabin class.',
+    inputs: [
+      { id: 'economy', label: 'Economy' },
+      { id: 'business', label: 'Business' },
+      { id: 'first', label: 'First Class' },
+    ],
+    recommendedOptionId: 'economy',
+    decisionExplanation: 'it offers the best value for short flights',
+  };
+
+  describe('low load (cognitiveLoad < 4)', () => {
+    it('returns only the step intro — no input list', () => {
+      const result = generateSemanticSummary(baseStep, 0);
+      expect(result).toContain('Step 2');
+      expect(result).toContain('Selecting your cabin class');
+      expect(result).not.toContain('We need to know');
+    });
+
+    it('does not include the recommendation', () => {
+      const result = generateSemanticSummary(baseStep, 3);
+      expect(result).not.toContain('I recommend');
+    });
+
+    it('produces a short single-sentence output', () => {
+      const result = generateSemanticSummary(baseStep, 1);
+      // Should end after the intro period — no Option or guided text
+      expect(result).not.toContain('Option');
+      expect(result).not.toContain('I will guide');
+    });
+  });
+
+  describe('medium load (cognitiveLoad 4–7)', () => {
+    it('lists input labels as normal', () => {
+      const result = generateSemanticSummary(baseStep, 5);
+      expect(result).toContain('We need to know: Economy, Business, First Class');
+    });
+
+    it('includes the recommendation with explanation', () => {
+      const result = generateSemanticSummary(baseStep, 6);
+      expect(result).toContain('I recommend Economy because it offers the best value for short flights.');
+    });
+
+    it('does not use guided narration phrasing', () => {
+      const result = generateSemanticSummary(baseStep, 4);
+      expect(result).not.toContain('I will guide');
+      expect(result).not.toContain('Option 1:');
+    });
+  });
+
+  describe('high load (cognitiveLoad > 7)', () => {
+    it('uses guided narration phrasing', () => {
+      const result = generateSemanticSummary(baseStep, 8);
+      expect(result).toContain('I will guide you through each option');
+    });
+
+    it('reads options one by one with ordinal labels', () => {
+      const result = generateSemanticSummary(baseStep, 9);
+      expect(result).toContain('Option 1: Economy');
+      expect(result).toContain('Option 2: Business');
+      expect(result).toContain('Option 3: First Class');
+    });
+
+    it('marks the recommended option inline', () => {
+      const result = generateSemanticSummary(baseStep, 10);
+      expect(result).toContain('Option 1: Economy, recommended');
+    });
+
+    it('appends simplified recommendation sentence with "I suggest" phrasing', () => {
+      const result = generateSemanticSummary(baseStep, 9);
+      expect(result).toContain('I suggest Economy');
+      expect(result).toContain('it offers the best value for short flights');
+    });
+
+    it('handles missing explanation in high load gracefully', () => {
+      const step = { ...baseStep, decisionExplanation: undefined };
+      const result = generateSemanticSummary(step, 9);
+      expect(result).toContain('I suggest Economy.');
+      expect(result).not.toContain('undefined');
+    });
+
+    it('does not use "We need to know" phrasing', () => {
+      const result = generateSemanticSummary(baseStep, 8);
+      expect(result).not.toContain('We need to know');
+    });
+
+    it('works with no recommendedOptionId', () => {
+      const step = { ...baseStep, recommendedOptionId: undefined };
+      const result = generateSemanticSummary(step, 9);
+      expect(result).toContain('Option 1: Economy.');
+      expect(result).not.toContain('recommended');
+      expect(result).not.toContain('I suggest');
+    });
+  });
+
+  describe('boundary values', () => {
+    it('score exactly 4 uses medium narration', () => {
+      const result = generateSemanticSummary(baseStep, 4);
+      expect(result).toContain('We need to know');
+    });
+
+    it('score exactly 7 uses medium narration', () => {
+      const result = generateSemanticSummary(baseStep, 7);
+      expect(result).toContain('We need to know');
+      expect(result).not.toContain('I will guide');
+    });
+
+    it('score of 7.5 uses high narration', () => {
+      const result = generateSemanticSummary(baseStep, 7.5);
+      expect(result).toContain('I will guide');
+    });
+  });
+});
+
 describe('speakText', () => {
   let mockCancel;
   let mockSpeak;
