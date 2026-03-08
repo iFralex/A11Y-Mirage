@@ -323,6 +323,189 @@ test.describe('accessibility: safe mode review dialog', () => {
   });
 });
 
+// ─── Test 5: Keyboard Only Navigation ─────────────────────────────────────────
+
+test.describe('accessibility: keyboard only navigation', () => {
+  test.beforeAll(async () => {
+    test.skip(!BROWSER_AVAILABLE, 'Browser not available in this environment');
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await seedZustandState(workflowWithStep(MOCK_STEP, DEFAULT_PROFILE))(page);
+  });
+
+  test('Keyboard Only Navigation: workflow completes with Tab, Shift+Tab, Enter, and Alt shortcuts only', async ({
+    page,
+  }) => {
+    await interceptServerAction(page, MOCK_NEXT_STEP);
+
+    await page.goto('/');
+    await expect(page.locator('#step-title')).toBeVisible();
+
+    // ── Step 1 ────────────────────────────────────────────────────────────────
+    // h2 receives programmatic focus on mount; Tab moves to the first input
+    await page.keyboard.press('Tab');
+    await expect(page.locator('input[id="destination"]')).toBeFocused();
+
+    // Fill destination field using keyboard only (no mouse)
+    await page.keyboard.type('Rome');
+    await expect(page.locator('input[id="destination"]')).toHaveValue('Rome');
+
+    // Tab forward to travel_type radio group and select the first option
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Space');
+
+    // Shift+Tab navigates backward to destination (validates reverse tab traversal)
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.locator('input[id="destination"]')).toBeFocused();
+
+    // Tab forward again and re-select the radio option
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Space');
+
+    // Submit via Alt+N global keyboard shortcut (no mouse click)
+    await page.keyboard.press('Alt+n');
+
+    // Step 2 must load – proving step 1 was submitted entirely via keyboard
+    await expect(page.getByText(MOCK_NEXT_STEP.stateSummary)).toBeVisible({
+      timeout: 5000,
+    });
+
+    // ── Step 2 ────────────────────────────────────────────────────────────────
+    // Listen for the step-2 server-action request before triggering it
+    const step2Request = page.waitForRequest(
+      (req) => req.method() === 'POST' && !!req.headers()['next-action'],
+      { timeout: 5000 }
+    );
+
+    // h2 is auto-focused on step change; Tab to hotel checkbox, Tab to Submit, Enter
+    await page.keyboard.press('Tab'); // hotel checkbox (boolean_confirm, not required)
+    await page.keyboard.press('Tab'); // Submit Step button
+    await page.keyboard.press('Enter'); // keyboard submission (no mouse)
+
+    // Resolved request proves step 2 was also submitted entirely via keyboard
+    await step2Request;
+  });
+});
+
+// ─── Test 6: Speech and Keyboard Interruption ─────────────────────────────────
+
+test.describe('accessibility: speech and keyboard interruption', () => {
+  test.beforeAll(async () => {
+    test.skip(!BROWSER_AVAILABLE, 'Browser not available in this environment');
+  });
+
+  test.beforeEach(async ({ page }) => {
+    // Mock window.speechSynthesis with a spy before any page scripts execute
+    await page.addInitScript(() => {
+      window.__speechMock = { speakCount: 0, cancelCount: 0, lastText: '' };
+      window.SpeechSynthesisUtterance = class {
+        constructor(text) {
+          this.text = text;
+        }
+      };
+      window.speechSynthesis = {
+        speaking: false,
+        cancel() {
+          window.speechSynthesis.speaking = false;
+          window.__speechMock.cancelCount++;
+        },
+        speak(utterance) {
+          window.speechSynthesis.speaking = true;
+          window.__speechMock.speakCount++;
+          window.__speechMock.lastText = utterance?.text || '';
+        },
+      };
+    });
+
+    // Seed: voice modality so narration fires automatically on step mount
+    await seedZustandState(
+      workflowWithStep(MOCK_STEP, {
+        ...DEFAULT_PROFILE,
+        interaction: { ...DEFAULT_PROFILE.interaction, preferredModality: 'voice' },
+      })
+    )(page);
+  });
+
+  test('Speech and Keyboard Interruption: Alt+R replays narration; Tab triggers cancel', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.locator('#step-title')).toBeVisible();
+
+    // Speech must fire on mount because preferredModality === 'voice'
+    await page.waitForFunction(() => window.__speechMock.speakCount > 0, {
+      timeout: 3000,
+    });
+    const speakCountAfterMount = await page.evaluate(
+      () => window.__speechMock.speakCount
+    );
+    expect(speakCountAfterMount).toBeGreaterThan(0);
+
+    // Press Alt+R – triggers SpeechController.reread(), which calls _doSpeak()
+    // synchronously (no debounce), so speakCount increases immediately after press
+    await page.keyboard.press('Alt+r');
+    const speakCountAfterReread = await page.evaluate(
+      () => window.__speechMock.speakCount
+    );
+    expect(speakCountAfterReread).toBeGreaterThan(speakCountAfterMount);
+
+    // Capture cancel count before Tab
+    const cancelCountBefore = await page.evaluate(
+      () => window.__speechMock.cancelCount
+    );
+
+    // Tab – the keydown listener from SpeechController.registerInteractionCancellation
+    // fires window.speechSynthesis.cancel() immediately on any keydown
+    await page.keyboard.press('Tab');
+
+    const cancelCountAfter = await page.evaluate(
+      () => window.__speechMock.cancelCount
+    );
+    expect(cancelCountAfter).toBeGreaterThan(cancelCountBefore);
+  });
+});
+
+// ─── Test 7: Cognitive Load Keyboard Hints ────────────────────────────────────
+
+test.describe('accessibility: cognitive load keyboard hints', () => {
+  test.beforeAll(async () => {
+    test.skip(!BROWSER_AVAILABLE, 'Browser not available in this environment');
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await seedZustandState(workflowWithStep(MOCK_STEP, DEFAULT_PROFILE))(page);
+  });
+
+  test('Cognitive Load Keyboard Hints: hints appear dynamically when localCognitiveLoadScore = 8', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.locator('#step-title')).toBeVisible();
+
+    // Keyboard hints must NOT be visible initially (score = 0, safeMode = false)
+    await expect(page.getByText('Keyboard Shortcuts Available')).not.toBeVisible();
+
+    // Inject a cognitive load score of 8 via the Zustand store (no page reload)
+    await page.evaluate(() => {
+      if (window.__sharedStore) {
+        window.__sharedStore.getState().updateTelemetry({ localCognitiveLoadScore: 8 });
+      }
+    });
+
+    // Keyboard hints Alert must appear dynamically (score 8 exceeds threshold 6)
+    await expect(page.getByText('Keyboard Shortcuts Available')).toBeVisible({
+      timeout: 3000,
+    });
+
+    // The hints alert must carry aria-live="polite" so screen readers announce it
+    const hintsAlert = page
+      .locator('[aria-live="polite"]')
+      .filter({ hasText: 'Keyboard Shortcuts Available' });
+    await expect(hintsAlert).toBeVisible();
+  });
+});
+
 // ─── Test 4: Screen Reader Rendering Pipeline ─────────────────────────────────
 
 test.describe('accessibility: screen reader rendering pipeline', () => {
