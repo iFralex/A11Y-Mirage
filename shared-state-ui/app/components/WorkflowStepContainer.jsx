@@ -20,6 +20,13 @@ import { generateSemanticSummary } from '@/app/utils/semanticSpeech';
 import SpeechController from '@/app/utils/speechController';
 import { useStepTelemetry } from '@/app/hooks/useStepTelemetry';
 import AccessibilityReport from '@/app/components/AccessibilityReport';
+import {
+  playStepChange,
+  playSuggestion,
+  playError,
+  playSafeMode,
+  playFocusTunnel,
+} from '@/app/utils/audioCues';
 
 function FinalSummaryContainer({ summary, actionLabel, onComplete }) {
   return (
@@ -62,6 +69,12 @@ export default function WorkflowStepContainer() {
   const stepContainerRef = useRef(null);
   const titleRef = useRef(null);
   const lastNarratedStepIdRef = useRef(null);
+
+  // Refs to track previous values for audio-cue edge-detection
+  const prevErrorRef = useRef(null);
+  const prevSafeModeRef = useRef(false);
+  const prevRequiresDecisionSupportRef = useRef(false);
+  const prevRecommendedOptionRef = useRef(null);
 
   const { resetTelemetry } = useStepTelemetry(stepContainerRef);
 
@@ -121,6 +134,48 @@ export default function WorkflowStepContainer() {
   useEffect(() => {
     return SpeechController.registerInteractionCancellation();
   }, []);
+
+  // Audio cue: new step loaded.
+  useEffect(() => {
+    if (currentStep && !isLoading && !currentStep.isFinalStep) {
+      playStepChange(userProfile);
+    }
+  }, [currentStep?.stepId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Audio cue: recommended option appears for this step.
+  useEffect(() => {
+    const recommended = currentStep?.recommendedOptionId || null;
+    if (recommended && recommended !== prevRecommendedOptionRef.current) {
+      playSuggestion(userProfile);
+    }
+    prevRecommendedOptionRef.current = recommended;
+  }, [currentStep?.recommendedOptionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Audio cue: input validation error surfaced.
+  useEffect(() => {
+    if (error && !prevErrorRef.current) {
+      playError(userProfile);
+    }
+    prevErrorRef.current = error;
+  }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Audio cue: Safe Mode activated.
+  useEffect(() => {
+    const safeMode = userProfile.cognitive.safeMode;
+    if (safeMode && !prevSafeModeRef.current) {
+      playSafeMode(userProfile);
+    }
+    prevSafeModeRef.current = safeMode;
+  }, [userProfile.cognitive.safeMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Audio cue: Focus Tunnel activated (requiresDecisionSupport flips to true).
+  useEffect(() => {
+    const rds = userProfile.cognitive.requiresDecisionSupport;
+    if (rds && !prevRequiresDecisionSupportRef.current) {
+      playFocusTunnel(userProfile);
+    }
+    prevRequiresDecisionSupportRef.current = rds;
+  }, [userProfile.cognitive.requiresDecisionSupport]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = () => {
     if (!stepRendererRef.current) return;
