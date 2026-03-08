@@ -311,7 +311,11 @@ export default function WorkflowStepContainer() {
 
           <div className="flex gap-2 mt-2 flex-wrap">
             {!currentStep.isFinalStep && (
-              <Button onClick={handleSubmit} className="self-start">
+              <Button
+                onClick={handleSubmit}
+                data-action="submit-step"
+                className="self-start"
+              >
                 {userProfile.cognitive.safeMode ? 'Review Choices' : 'Submit Step'}
               </Button>
             )}

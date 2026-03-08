@@ -245,7 +245,11 @@ function renderSingleInput(input, responses, updateResponses, clearError, recomm
               const isSuggested = recommendedOptionId && option === recommendedOptionId;
               return (
                 <div key={optionId} className="flex items-center gap-2">
-                  <RadioGroupItem value={option} id={optionId} />
+                  <RadioGroupItem
+                    value={option}
+                    id={optionId}
+                    data-recommended={isSuggested ? 'true' : undefined}
+                  />
                   <Label htmlFor={optionId}>{option}</Label>
                   {isSuggested && <Badge variant="secondary">Suggested</Badge>}
                 </div>
