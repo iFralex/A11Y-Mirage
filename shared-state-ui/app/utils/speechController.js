@@ -178,6 +178,29 @@ export class SpeechControllerClass {
     window.speechSynthesis.speak(utterance);
   }
 
+  /**
+   * Register global event listeners (keydown, mousedown, focusin) that
+   * automatically cancel speech whenever the user interacts with the page.
+   * Returns a cleanup function that removes the listeners.
+   *
+   * Centralises cancellation logic so components don't need to wire up their
+   * own event handlers for this purpose.
+   *
+   * @returns {() => void} Cleanup function to remove the listeners.
+   */
+  registerInteractionCancellation() {
+    const handler = () => this.cancel();
+    if (typeof window === 'undefined') return () => {};
+    window.addEventListener('keydown', handler);
+    window.addEventListener('mousedown', handler);
+    window.addEventListener('focusin', handler);
+    return () => {
+      window.removeEventListener('keydown', handler);
+      window.removeEventListener('mousedown', handler);
+      window.removeEventListener('focusin', handler);
+    };
+  }
+
   /** Clear any pending inter-sentence pause timer. */
   _clearSentenceTimer() {
     if (this._sentenceTimer !== null) {

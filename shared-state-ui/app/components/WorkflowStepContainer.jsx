@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import { processWithGemini } from '@/app/actions/processUserInput';
 import { mapResponsesToProfile } from '@/app/utils/workflowHelpers';
-import { generateSemanticSummary, speakText, cancelSpeech } from '@/app/utils/semanticSpeech';
+import { generateSemanticSummary } from '@/app/utils/semanticSpeech';
+import SpeechController from '@/app/utils/speechController';
 import { useStepTelemetry } from '@/app/hooks/useStepTelemetry';
 import AccessibilityReport from '@/app/components/AccessibilityReport';
 
@@ -60,6 +61,7 @@ export default function WorkflowStepContainer() {
   const stepRendererRef = useRef(null);
   const stepContainerRef = useRef(null);
   const titleRef = useRef(null);
+  const lastNarratedStepIdRef = useRef(null);
 
   const { resetTelemetry } = useStepTelemetry(stepContainerRef);
 
@@ -88,29 +90,36 @@ export default function WorkflowStepContainer() {
     }
   }, [telemetry.localCognitiveLoadScore, highLoadAlertShown, updateUserProfile]);
 
+  // Narrate current step whenever shouldNarrate is true; deduplicate by stepId.
   useEffect(() => {
-    if (
-      currentStep &&
-      !isLoading &&
-      !currentStep.isFinalStep &&
-      userProfile.interaction.preferredModality === 'voice'
-    ) {
-      const summary = generateSemanticSummary(currentStep);
-      speakText(summary);
-    }
-    return () => {
-      cancelSpeech();
-    };
-  }, [currentStep, isLoading, userProfile.interaction.preferredModality]);
+    if (!currentStep || isLoading || currentStep.isFinalStep) return;
 
+    const shouldNarrate =
+      userProfile.interaction.preferredModality === 'voice' ||
+      telemetry.localCognitiveLoadScore > 6 ||
+      userProfile.sensory.vision !== 'default';
+
+    if (!shouldNarrate) return;
+    if (lastNarratedStepIdRef.current === currentStep.stepId) return;
+
+    lastNarratedStepIdRef.current = currentStep.stepId;
+    const summary = generateSemanticSummary(currentStep);
+    SpeechController.speak(summary, {
+      userProfile,
+      cognitiveLoadScore: telemetry.localCognitiveLoadScore,
+    });
+  }, [currentStep, isLoading, userProfile, telemetry.localCognitiveLoadScore]);
+
+  // Cancel speech whenever the step changes (cleanup).
   useEffect(() => {
-    const handleInteraction = () => cancelSpeech();
-    window.addEventListener('keydown', handleInteraction);
-    window.addEventListener('mousedown', handleInteraction);
     return () => {
-      window.removeEventListener('keydown', handleInteraction);
-      window.removeEventListener('mousedown', handleInteraction);
+      SpeechController.cancel();
     };
+  }, [currentStep?.stepId]);
+
+  // Centralise interaction-driven cancellation inside SpeechController.
+  useEffect(() => {
+    return SpeechController.registerInteractionCancellation();
   }, []);
 
   const handleSubmit = () => {
