@@ -285,7 +285,7 @@ export async function processWithGemini(userInput, systemContext, workflowState,
       const response = await model.generateContent(prompt);
       const parsed = JSON.parse(response.response.text());
       validateStepResponse(parsed);
-      fs.appendFileSync(
+      /*fs.appendFileSync(
         path.join(process.cwd(), "logs", "workflow-history.log"),
         JSON.stringify({
           timestamp: new Date().toISOString(),
@@ -294,7 +294,7 @@ export async function processWithGemini(userInput, systemContext, workflowState,
           userResponse: userInput,
           modelResponse: parsed,
         }) + "\n"
-      );
+      );*/
       return parsed;
     } catch (error) {
       lastError = error;
